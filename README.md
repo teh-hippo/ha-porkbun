@@ -68,16 +68,35 @@ Add the integration multiple times — once per domain. Each domain is independe
 
 ## Sensors
 
-Each domain creates one device with three sensors:
+Each domain creates one device with these sensors:
 
-| Sensor | Description |
-|---|---|
-| **Public IPv4** | Your current public IPv4 address. Includes a `managed_records` attribute listing all DNS records being updated. |
-| **Public IPv6** | Your current public IPv6 address (only if IPv6 enabled) |
-| **Last Updated** | When the integration last checked and updated DNS records |
-| **Next Update** | When the next scheduled check will occur |
+| Sensor | Description | Default |
+|---|---|---|
+| **DNS Status** | Binary sensor — healthy (✅) or problem detected | Enabled |
+| **Last Updated** | When the integration last checked DNS records | Enabled |
+| **Next Update** | When the next scheduled check will occur | Enabled |
+| **Public IPv4** | Your current public IPv4 address | Disabled |
+| **Public IPv6** | Your current public IPv6 address (only if IPv6 enabled) | Disabled |
+| **Domain Expiry** | When the domain registration expires | Disabled |
+| **WHOIS Privacy** | Whether WHOIS privacy is enabled | Disabled |
 
 > All subdomains under the same domain share the same public IP — that's how DDNS works. The managed records (root domain + all subdomains) are listed as an attribute on the IP sensor.
+
+## Actions
+
+| Entity | Type | Description |
+|---|---|---|
+| **Update DNS** | Button | Triggers an immediate DNS update check, bypassing the polling interval. Useful after changing your network or to verify records are current. |
+
+To trigger from an automation, use the `button.press` service targeting the "Update DNS" button entity.
+
+## Removing the Integration
+
+1. Go to **Settings** → **Devices & Services**
+2. Find "Porkbun DDNS" and click the entry for the domain you want to remove
+3. Click the three dots (⋮) → **Delete**
+
+Removing the integration does **not** delete your DNS records from Porkbun — it only stops automatic updates.
 
 ## Troubleshooting
 

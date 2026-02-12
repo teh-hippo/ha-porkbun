@@ -7,16 +7,26 @@
         "data": {
           "api_key": "API Key",
           "secret_key": "Secret API Key"
+        },
+        "data_description": {
+          "api_key": "Your Porkbun API key from porkbun.com/account/api.",
+          "secret_key": "Your Porkbun secret API key."
         }
       },
       "domain": {
         "title": "Domain Configuration",
         "description": "Configure the domain and optional subdomains for DDNS updates. The root domain is always included.",
         "data": {
-          "domain": "Domain (e.g., example.com)",
-          "subdomains": "Subdomains (comma-separated, optional)",
+          "domain": "Domain",
+          "subdomains": "Subdomains",
           "ipv4": "Update IPv4 (A record)",
           "ipv6": "Update IPv6 (AAAA record)"
+        },
+        "data_description": {
+          "domain": "The root domain to update (e.g., example.com).",
+          "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
+          "ipv4": "Create or update A records with your public IPv4 address.",
+          "ipv6": "Create or update AAAA records with your public IPv6 address."
         }
       },
       "reauth_confirm": {
@@ -25,6 +35,10 @@
         "data": {
           "api_key": "API Key",
           "secret_key": "Secret API Key"
+        },
+        "data_description": {
+          "api_key": "Your Porkbun API key from porkbun.com/account/api.",
+          "secret_key": "Your Porkbun secret API key."
         }
       }
     },
@@ -44,10 +58,16 @@
       "init": {
         "title": "Porkbun DDNS Options",
         "data": {
-          "update_interval": "Update interval (seconds, default 300)",
-          "subdomains": "Subdomains (comma-separated)",
+          "update_interval": "Update interval (seconds)",
+          "subdomains": "Subdomains",
           "ipv4": "Update IPv4 (A record)",
           "ipv6": "Update IPv6 (AAAA record)"
+        },
+        "data_description": {
+          "update_interval": "How often to check and update DNS records, in seconds. Minimum 60.",
+          "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
+          "ipv4": "Create or update A records with your public IPv4 address.",
+          "ipv6": "Create or update AAAA records with your public IPv6 address."
         }
       }
     }
