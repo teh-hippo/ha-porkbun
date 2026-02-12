@@ -138,3 +138,27 @@ async def test_whois_privacy_sensor_value(hass: HomeAssistant, mock_porkbun_clie
     state = hass.states.get(entity_id)
     assert state is not None
     assert state.state == "on"  # WHOIS privacy is enabled
+
+
+async def test_health_sensor_extra_attributes_with_failures(
+    hass: HomeAssistant, mock_porkbun_client: AsyncMock
+) -> None:
+    """Test health sensor extra_state_attributes includes failed_records."""
+    call_count = 0
+
+    async def _get_records_with_failure(domain, record_type, subdomain=""):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 2:
+            raise PorkbunApiError("DNS error")
+        return []
+
+    mock_porkbun_client.get_records.side_effect = _get_records_with_failure
+
+    entry = _make_entry(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get(f"binary_sensor.{MOCK_DOMAIN.replace('.', '_')}_dns_status")
+    assert state is not None
+    assert "failed_records" in state.attributes
