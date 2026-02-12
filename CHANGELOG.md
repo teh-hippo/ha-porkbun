@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.3.0 (2026-02-12)
+
+### Features
+
+- Add icons.json for entity icons
+  ([`f51275d`](https://github.com/teh-hippo/ha-porkbun/commit/f51275d091fad95ec55a2ef68e905d493f6107ae))
+
+
 ## v0.2.0 (2026-02-12)
 
 ### Features
