@@ -13,6 +13,19 @@
       "next_update": {
         "default": "mdi:clock-fast"
       }
+    },
+    "binary_sensor": {
+      "health": {
+        "default": "mdi:check-circle",
+        "state": {
+          "on": "mdi:alert-circle"
+        }
+      }
+    },
+    "button": {
+      "force_update": {
+        "default": "mdi:refresh"
+      }
     }
   }
 }

@@ -36,6 +36,8 @@ class RecordState:
 
     current_ip: str | None = None
     last_updated: datetime | None = None
+    ok: bool = True
+    error: str | None = None
 
 
 @dataclass
@@ -95,6 +97,25 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         """Return whether IPv6 updates are enabled."""
         return self.config_entry.options.get(CONF_IPV6, False)
 
+    @property
+    def record_count(self) -> int:
+        """Return total number of tracked records."""
+        if not self.data or not self.data.records:
+            return 0
+        return len(self.data.records)
+
+    @property
+    def ok_count(self) -> int:
+        """Return number of records that updated successfully."""
+        if not self.data or not self.data.records:
+            return 0
+        return sum(1 for r in self.data.records.values() if r.ok)
+
+    @property
+    def all_ok(self) -> bool:
+        """Return True if all records updated successfully."""
+        return self.record_count > 0 and self.ok_count == self.record_count
+
     def _get_session(self) -> aiohttp.ClientSession:
         """Get the aiohttp client session."""
         return async_get_clientsession(self.hass)
@@ -120,30 +141,46 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             targets = [""] + self.subdomains
             for subdomain in targets:
                 if self.ipv4_enabled and data.public_ipv4:
-                    await self._update_record(client, data, subdomain, "A", data.public_ipv4, now)
+                    await self._update_record(
+                        client,
+                        data,
+                        subdomain,
+                        "A",
+                        data.public_ipv4,
+                        now,
+                    )
                 if self.ipv6_enabled and data.public_ipv6:
-                    await self._update_record(client, data, subdomain, "AAAA", data.public_ipv6, now)
+                    await self._update_record(
+                        client,
+                        data,
+                        subdomain,
+                        "AAAA",
+                        data.public_ipv6,
+                        now,
+                    )
 
             data.last_updated = now
             return data
 
         except PorkbunAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
-        except PorkbunApiError as err:
-            # Raise a repair issue for domain-level API errors
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                f"api_access_{self._domain}",
-                is_fixable=False,
-                is_persistent=False,
-                severity=ir.IssueSeverity.ERROR,
-                translation_key="api_access_disabled",
-                translation_placeholders={"domain": self._domain},
-            )
-            raise UpdateFailed(f"Porkbun API error: {err}") from err
-        except (aiohttp.ClientError, TimeoutError) as err:
-            raise UpdateFailed(f"Connection error: {err}") from err
+        except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
+            # Domain-level failure (e.g. ping failed) — mark all records as failed
+            for state in data.records.values():
+                state.ok = False
+                state.error = str(err)
+            if isinstance(err, PorkbunApiError):
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    f"api_access_{self._domain}",
+                    is_fixable=False,
+                    is_persistent=False,
+                    severity=ir.IssueSeverity.ERROR,
+                    translation_key="api_access_disabled",
+                    translation_placeholders={"domain": self._domain},
+                )
+            raise UpdateFailed(f"Porkbun DDNS error: {err}") from err
 
     async def _update_record(
         self,
@@ -157,29 +194,38 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         """Check and update a single DNS record if the IP has changed."""
         key = data.record_key(subdomain, record_type)
         state = data.records.get(key, RecordState())
-
-        # Fetch current record from Porkbun
-        existing = await client.get_records(self._domain, record_type, subdomain)
-        current_ip = existing[0].content if existing else None
-
         label = f"{subdomain}.{self._domain}" if subdomain else self._domain
-        if current_ip == target_ip:
-            LOGGER.debug("%s %s record already correct (%s)", label, record_type, target_ip)
-            state.current_ip = current_ip
+
+        try:
+            existing = await client.get_records(self._domain, record_type, subdomain)
+            current_ip = existing[0].content if existing else None
+
+            if current_ip == target_ip:
+                LOGGER.debug("%s %s record already correct (%s)", label, record_type, target_ip)
+                state.current_ip = current_ip
+                state.last_updated = now
+                state.ok = True
+                state.error = None
+                data.records[key] = state
+                return
+
+            # IP differs — update or create
+            if existing:
+                LOGGER.info("Updating %s %s record: %s → %s", label, record_type, current_ip, target_ip)
+                await client.edit_record_by_name_type(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
+            else:
+                LOGGER.info("Creating %s %s record: %s", label, record_type, target_ip)
+                await client.create_record(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
+
+            state.current_ip = target_ip
             state.last_updated = now
-            data.records[key] = state
-            return
+            state.ok = True
+            state.error = None
+        except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
+            LOGGER.warning("Failed to update %s %s: %s", label, record_type, err)
+            state.ok = False
+            state.error = str(err)
 
-        # IP differs — update or create
-        if existing:
-            LOGGER.info("Updating %s %s record: %s → %s", label, record_type, current_ip, target_ip)
-            await client.edit_record_by_name_type(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
-        else:
-            LOGGER.info("Creating %s %s record: %s", label, record_type, target_ip)
-            await client.create_record(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
-
-        state.current_ip = target_ip
-        state.last_updated = now
         data.records[key] = state
 
     async def _get_ipv6(self, session: aiohttp.ClientSession) -> str | None:

@@ -55,6 +55,7 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
 
     _attr_has_entity_name = True
     _attr_icon = "mdi:ip-network"
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,

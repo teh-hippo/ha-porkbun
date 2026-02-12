@@ -1,4 +1,4 @@
-"""Tests for the sensor entities."""
+"""Tests for the button entity."""
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock
 
 import pytest
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.porkbun_ddns.const import (
@@ -40,7 +39,7 @@ def _make_entry(hass: HomeAssistant) -> MockConfigEntry:
             CONF_DOMAIN: MOCK_DOMAIN,
         },
         options={
-            CONF_SUBDOMAINS: ["www"],
+            CONF_SUBDOMAINS: [],
             CONF_IPV4: True,
             CONF_IPV6: False,
             CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
@@ -50,31 +49,32 @@ def _make_entry(hass: HomeAssistant) -> MockConfigEntry:
     return entry
 
 
-async def test_sensors_created(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test that device-level sensors are created (2 active: last updated, next update)."""
+async def test_button_created(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test that the force update button is created."""
     entry = _make_entry(hass)
 
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
     states = {s.entity_id: s for s in hass.states.async_all()}
-    sensor_ids = [
-        eid for eid in states if eid.startswith("sensor.") and ("porkbun" in eid.lower() or "example" in eid.lower())
-    ]
-    # IP sensor is disabled by default, so only Last Updated + Next Update are active
-    assert len(sensor_ids) == 2, f"Expected 2 sensors, got {len(sensor_ids)}: {sensor_ids}"
+    button_ids = [eid for eid in states if eid.startswith("button.")]
+    assert len(button_ids) == 1
 
 
-async def test_ip_sensor_disabled_by_default(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test that the IP sensor is registered but disabled by default."""
+async def test_button_press_triggers_refresh(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test that pressing the button triggers a coordinator refresh."""
     entry = _make_entry(hass)
 
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    ent_reg = er.async_get(hass)
-    ip_entity = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{MOCK_DOMAIN}_A_ip")
-    assert ip_entity is not None
-    entity_entry = ent_reg.async_get(ip_entity)
-    assert entity_entry is not None
-    assert entity_entry.disabled_by is not None
+    # Press the button
+    await hass.services.async_call(
+        "button",
+        "press",
+        {"entity_id": f"button.{MOCK_DOMAIN.replace('.', '_')}_update_dns"},
+        blocking=True,
+    )
+
+    # Ping is called on setup + once on button press
+    assert mock_porkbun_client.ping.call_count >= 2

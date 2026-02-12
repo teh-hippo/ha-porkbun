@@ -9,7 +9,7 @@ from homeassistant.helpers import issue_registry as ir
 from .const import CONF_DOMAIN, DOMAIN, LOGGER
 from .coordinator import PorkbunDdnsCoordinator
 
-PLATFORMS = ["sensor"]
+PLATFORMS = ["binary_sensor", "button", "sensor"]
 
 type PorkbunDdnsConfigEntry = ConfigEntry
 
