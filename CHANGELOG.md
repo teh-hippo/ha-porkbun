@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.4.0 (2026-02-12)
+
+### Features
+
+- Add brand icon for HACS and HA display
+  ([`0b09c86`](https://github.com/teh-hippo/ha-porkbun/commit/0b09c865a0009f3865d767d30c2767648d8495a1))
+
+
 ## v0.3.0 (2026-02-12)
 
 ### Features
