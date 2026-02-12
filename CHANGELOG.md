@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## v0.9.0 (2026-02-12)
+
+### Features
+
+- Bronze quality scale completion
+  ([`dfce223`](https://github.com/teh-hippo/ha-porkbun/commit/dfce223220dd859062cef9a3aa7345fc88ab2697))
+
+- Add data_description for all config flow fields (strings.json) - Config flow test coverage 59% →
+  100% (13 tests covering all paths) - Document removal instructions and service actions in README -
+  Update sensors table in README to reflect all current entities
+
+
 ## v0.8.1 (2026-02-12)
 
 ### Bug Fixes
