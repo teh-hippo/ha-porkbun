@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Coroutine
 from typing import Any
 
 import aiohttp
@@ -57,22 +58,31 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         """Get the options flow handler."""
         return PorkbunDdnsOptionsFlow(config_entry)
 
+    async def _try_api(self, coro: Coroutine[Any, Any, Any], auth_error: str = "invalid_auth") -> str | None:
+        """Run an API call and return an error key, or None on success."""
+        try:
+            await coro
+        except PorkbunAuthError:
+            return auth_error
+        except (aiohttp.ClientError, TimeoutError):
+            return "cannot_connect"
+        except Exception:
+            LOGGER.exception("Unexpected error during API call")
+            return "unknown"
+        return None
+
+    def _make_client(self, api_key: str, secret_key: str) -> PorkbunClient:
+        """Create an API client with the given credentials."""
+        return PorkbunClient(async_get_clientsession(self.hass), api_key, secret_key)
+
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Step 1: Validate API credentials."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            try:
-                session = async_get_clientsession(self.hass)
-                client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
-                await client.ping()
-            except PorkbunAuthError:
-                errors["base"] = "invalid_auth"
-            except (aiohttp.ClientError, TimeoutError):
-                errors["base"] = "cannot_connect"
-            except Exception:
-                LOGGER.exception("Unexpected error during credential validation")
-                errors["base"] = "unknown"
+            client = self._make_client(user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
+            if error := await self._try_api(client.ping()):
+                errors["base"] = error
             else:
                 self._api_key = user_input[CONF_API_KEY]
                 self._secret_key = user_input[CONF_SECRET_KEY]
@@ -91,18 +101,9 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(domain_name)
             self._abort_if_unique_id_configured()
 
-            # Validate domain is accessible with these keys
-            try:
-                session = async_get_clientsession(self.hass)
-                client = PorkbunClient(session, self._api_key, self._secret_key)
-                await client.get_records(domain_name, "A")
-            except PorkbunAuthError:
-                errors["base"] = "domain_not_found"
-            except (aiohttp.ClientError, TimeoutError):
-                errors["base"] = "cannot_connect"
-            except Exception:
-                LOGGER.exception("Unexpected error during domain validation")
-                errors["base"] = "unknown"
+            client = self._make_client(self._api_key, self._secret_key)
+            if error := await self._try_api(client.get_records(domain_name, "A"), "domain_not_found"):
+                errors["base"] = error
             else:
                 return self.async_create_entry(
                     title=domain_name,
@@ -130,17 +131,9 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            try:
-                session = async_get_clientsession(self.hass)
-                client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
-                await client.ping()
-            except PorkbunAuthError:
-                errors["base"] = "invalid_auth"
-            except (aiohttp.ClientError, TimeoutError):
-                errors["base"] = "cannot_connect"
-            except Exception:
-                LOGGER.exception("Unexpected error during re-authentication")
-                errors["base"] = "unknown"
+            client = self._make_client(user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
+            if error := await self._try_api(client.ping()):
+                errors["base"] = error
             else:
                 entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
                 if entry:
@@ -171,17 +164,9 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
             domain_name = user_input[CONF_DOMAIN].strip().lower()
             subdomains = _parse_subdomains(user_input.get(CONF_SUBDOMAINS, ""))
 
-            try:
-                session = async_get_clientsession(self.hass)
-                client = PorkbunClient(session, entry.data[CONF_API_KEY], entry.data[CONF_SECRET_KEY])
-                await client.get_records(domain_name, "A")
-            except PorkbunAuthError:
-                errors["base"] = "domain_not_found"
-            except (aiohttp.ClientError, TimeoutError):
-                errors["base"] = "cannot_connect"
-            except Exception:
-                LOGGER.exception("Unexpected error during reconfiguration")
-                errors["base"] = "unknown"
+            client = self._make_client(entry.data[CONF_API_KEY], entry.data[CONF_SECRET_KEY])
+            if error := await self._try_api(client.get_records(domain_name, "A"), "domain_not_found"):
+                errors["base"] = error
             else:
                 return self.async_update_reload_and_abort(
                     entry,

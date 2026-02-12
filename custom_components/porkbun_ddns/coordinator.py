@@ -81,25 +81,26 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     @property
     def domain(self) -> str:
         """Return the domain name."""
-        return str(self._domain)
+        domain: str = self._domain
+        return domain
 
     @property
     def subdomains(self) -> list[str]:
         """Return configured subdomains."""
-        result: list[str] = self.config_entry.options.get(CONF_SUBDOMAINS, [])
-        return result
+        subs: list[str] = self.config_entry.options.get(CONF_SUBDOMAINS, [])
+        return subs
 
     @property
     def ipv4_enabled(self) -> bool:
         """Return whether IPv4 updates are enabled."""
-        result: bool = self.config_entry.options.get(CONF_IPV4, True)
-        return result
+        enabled: bool = self.config_entry.options.get(CONF_IPV4, True)
+        return enabled
 
     @property
     def ipv6_enabled(self) -> bool:
         """Return whether IPv6 updates are enabled."""
-        result: bool = self.config_entry.options.get(CONF_IPV6, False)
-        return result
+        enabled: bool = self.config_entry.options.get(CONF_IPV6, False)
+        return enabled
 
     @property
     def record_count(self) -> int:
@@ -120,14 +121,10 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         """Return True if all records updated successfully."""
         return self.record_count > 0 and self.ok_count == self.record_count
 
-    def _get_session(self) -> aiohttp.ClientSession:
-        """Get the aiohttp client session."""
-        return async_get_clientsession(self.hass)
-
     async def _async_update_data(self) -> DdnsData:
         """Fetch current IP and update DNS records if needed."""
         try:
-            session = self._get_session()
+            session = async_get_clientsession(self.hass)
             client = PorkbunClient(session, self._api_key, self._secret_key)
             data = self.data or DdnsData()
             now = datetime.now(tz=UTC)

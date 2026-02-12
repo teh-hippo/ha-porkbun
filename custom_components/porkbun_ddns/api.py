@@ -18,10 +18,6 @@ class PorkbunAuthError(PorkbunApiError):
     """Authentication failure."""
 
 
-class PorkbunDomainError(PorkbunApiError):
-    """Domain-level error (e.g., API access not enabled)."""
-
-
 @dataclass
 class DnsRecord:
     """A DNS record from Porkbun."""

@@ -55,7 +55,7 @@ def mock_porkbun_client() -> Generator[AsyncMock]:
             autospec=True,
         ) as mock_cls,
         patch(
-            "custom_components.porkbun_ddns.coordinator.PorkbunDdnsCoordinator._get_session",
+            "custom_components.porkbun_ddns.coordinator.async_get_clientsession",
         ),
     ):
         client = mock_cls.return_value

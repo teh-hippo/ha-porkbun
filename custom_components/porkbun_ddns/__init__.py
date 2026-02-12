@@ -6,6 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from .const import CONF_DOMAIN, DOMAIN, LOGGER
 from .coordinator import PorkbunDdnsCoordinator
@@ -13,6 +14,18 @@ from .coordinator import PorkbunDdnsCoordinator
 PLATFORMS = ["binary_sensor", "button", "sensor"]
 
 type PorkbunDdnsConfigEntry = ConfigEntry[PorkbunDdnsCoordinator]
+
+
+def device_info(domain_name: str) -> DeviceInfo:
+    """Return shared device info for all entities under a domain."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, domain_name)},
+        name=domain_name,
+        manufacturer="Porkbun",
+        model="DDNS",
+        entry_type=DeviceEntryType.SERVICE,
+        configuration_url=f"https://porkbun.com/account/domainsSpe498/{domain_name}",
+    )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) -> bool:
