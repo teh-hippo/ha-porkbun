@@ -11,6 +11,7 @@ import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import PorkbunApiError, PorkbunAuthError, PorkbunClient
@@ -24,6 +25,7 @@ from .const import (
     CONF_UPDATE_INTERVAL,
     DEFAULT_TTL,
     DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
     IPV6_DETECT_URL,
     LOGGER,
 )
@@ -133,6 +135,17 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         except PorkbunAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
         except PorkbunApiError as err:
+            # Raise a repair issue for domain-level API errors
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                f"api_access_{self._domain}",
+                is_fixable=False,
+                is_persistent=False,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="api_access_disabled",
+                translation_placeholders={"domain": self._domain},
+            )
             raise UpdateFailed(f"Porkbun API error: {err}") from err
         except (aiohttp.ClientError, TimeoutError) as err:
             raise UpdateFailed(f"Connection error: {err}") from err
