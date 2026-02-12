@@ -5,7 +5,7 @@ from logging import Logger, getLogger
 LOGGER: Logger = getLogger(__package__)
 
 DOMAIN = "porkbun_ddns"
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 
 DEFAULT_UPDATE_INTERVAL = 300  # 5 minutes
 DEFAULT_TTL = 600  # Porkbun minimum

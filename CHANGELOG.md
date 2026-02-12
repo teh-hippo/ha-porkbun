@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## v0.8.1 (2026-02-12)
+
+### Bug Fixes
+
+- Replace branding with official Porkbun assets
+  ([`30de32b`](https://github.com/teh-hippo/ha-porkbun/commit/30de32b42f16f22eddab4bd953caa50e6c2f13a1))
+
+Source: https://porkbun.design/ (official Porkbun brand guidelines)
+
+- icon.png: 256×256 Porkbun pig - logo.png: 1063×256 full Porkbun logo with text
+
+
 ## v0.8.0 (2026-02-12)
 
 ### Features
