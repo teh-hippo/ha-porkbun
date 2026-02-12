@@ -57,6 +57,8 @@ class DdnsData:
 class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     """Coordinator that manages DDNS updates for a single domain."""
 
+    config_entry: ConfigEntry
+
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
         self._domain = config_entry.data[CONF_DOMAIN]
@@ -78,22 +80,25 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     @property
     def domain(self) -> str:
         """Return the domain name."""
-        return self._domain
+        return str(self._domain)
 
     @property
     def subdomains(self) -> list[str]:
         """Return configured subdomains."""
-        return self.config_entry.options.get(CONF_SUBDOMAINS, [])
+        result: list[str] = self.config_entry.options.get(CONF_SUBDOMAINS, [])
+        return result
 
     @property
     def ipv4_enabled(self) -> bool:
         """Return whether IPv4 updates are enabled."""
-        return self.config_entry.options.get(CONF_IPV4, True)
+        result: bool = self.config_entry.options.get(CONF_IPV4, True)
+        return result
 
     @property
     def ipv6_enabled(self) -> bool:
         """Return whether IPv6 updates are enabled."""
-        return self.config_entry.options.get(CONF_IPV6, False)
+        result: bool = self.config_entry.options.get(CONF_IPV6, False)
+        return result
 
     @property
     def record_count(self) -> int:

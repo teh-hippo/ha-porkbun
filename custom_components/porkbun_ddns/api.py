@@ -81,7 +81,8 @@ class PorkbunClient:
     async def ping(self) -> str:
         """Validate credentials and return the caller's public IPv4 address."""
         data = await self._request("ping")
-        return data["yourIp"]
+        your_ip: str = data["yourIp"]
+        return your_ip
 
     async def get_records(self, domain: str, record_type: str, subdomain: str = "") -> list[DnsRecord]:
         """Retrieve DNS records by domain, type, and optional subdomain."""

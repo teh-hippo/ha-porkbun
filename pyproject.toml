@@ -30,3 +30,24 @@ changelog_file = "CHANGELOG.md"
 [tool.semantic_release.remote]
 type = "github"
 token = { env = "GITHUB_TOKEN" }
+
+[tool.mypy]
+python_version = "3.13"
+plugins = []
+follow_imports = "normal"
+strict = true
+warn_return_any = true
+warn_unreachable = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "homeassistant.*",
+    "pytest_homeassistant_custom_component.*",
+]
+ignore_missing_imports = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.19.1",
+]

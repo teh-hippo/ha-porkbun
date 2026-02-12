@@ -7,8 +7,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -63,12 +62,12 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
         return not self.coordinator.all_ok
 
     @property
-    def extra_state_attributes(self) -> dict:
+    def extra_state_attributes(self) -> dict[str, str | list[str]]:
         """Return detailed record status."""
         coord = self.coordinator
         total = coord.record_count
         ok = coord.ok_count
-        attrs: dict = {"summary": f"{ok}/{total} OK"}
+        attrs: dict[str, str | list[str]] = {"summary": f"{ok}/{total} OK"}
 
         # List any failed records
         if coord.data and coord.data.records:

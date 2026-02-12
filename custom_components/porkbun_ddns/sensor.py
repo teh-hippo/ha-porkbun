@@ -6,8 +6,7 @@ from datetime import datetime
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -84,7 +83,7 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
         return self.coordinator.data.public_ipv6
 
     @property
-    def extra_state_attributes(self) -> dict[str, str]:
+    def extra_state_attributes(self) -> dict[str, str | list[str]]:
         """Return managed DNS records as attributes."""
         targets = [""] + self.coordinator.subdomains
         records = []

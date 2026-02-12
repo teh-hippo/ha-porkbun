@@ -6,9 +6,8 @@ from typing import Any
 
 import aiohttp
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import PorkbunAuthError, PorkbunClient
@@ -58,7 +57,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         """Get the options flow handler."""
         return PorkbunDdnsOptionsFlow(config_entry)
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Step 1: Validate API credentials."""
         errors: dict[str, str] = {}
 
@@ -81,7 +80,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors)
 
-    async def async_step_domain(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_domain(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Step 2: Configure domain and subdomains."""
         errors: dict[str, str] = {}
 
@@ -122,11 +121,11 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(step_id="domain", data_schema=STEP_DOMAIN_SCHEMA, errors=errors)
 
-    async def async_step_reauth(self, entry_data: dict[str, Any]) -> FlowResult:
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
         """Handle re-authentication."""
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Confirm re-authentication with new credentials."""
         errors: dict[str, str] = {}
 
@@ -170,7 +169,7 @@ class PorkbunDdnsOptionsFlow(OptionsFlow):
         """Initialize options flow."""
         self._config_entry = config_entry
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
             subdomains = _parse_subdomains(user_input.get(CONF_SUBDOMAINS, ""))
