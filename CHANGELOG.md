@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## v0.5.0 (2026-02-12)
+
+### Features
+
+- Consolidate to device-level sensors, add brand icon
+  ([`257fe2e`](https://github.com/teh-hippo/ha-porkbun/commit/257fe2e1195824db0acd67a891428216be42ac55))
+
+- Single Public IPv4/IPv6 sensor per device (all subdomains share same IP) - managed_records
+  attribute lists all DNS records being updated - Brand icon (icon.png, logo.png) for HACS store
+  display - Updated README sensor documentation - Clarified config flow strings
+
+
 ## v0.4.0 (2026-02-12)
 
 ### Features
