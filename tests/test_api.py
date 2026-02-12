@@ -2,74 +2,71 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, MagicMock
+
 import aiohttp
 import pytest
-from aioresponses import aioresponses
 
 from custom_components.porkbun_ddns.api import (
     PorkbunApiError,
     PorkbunAuthError,
     PorkbunClient,
 )
-from custom_components.porkbun_ddns.const import PORKBUN_API_BASE
 
 API_KEY = "pk1_test"
 SECRET_KEY = "sk1_test"
 
 
-@pytest.fixture
-def mock_api():
-    """Create aioresponses context."""
-    with aioresponses() as m:
-        yield m
+def _mock_response(payload: dict, status: int = 200) -> MagicMock:
+    """Create a mock aiohttp response."""
+    resp = MagicMock()
+    resp.status = status
+    resp.json = AsyncMock(return_value=payload)
+    return resp
 
 
-@pytest.fixture
-async def client(mock_api: aioresponses) -> PorkbunClient:
-    """Create a PorkbunClient with a shared session."""
-    connector = aiohttp.TCPConnector(enable_cleanup_closed=True)
-    session = aiohttp.ClientSession(connector=connector)
-    c = PorkbunClient(session, API_KEY, SECRET_KEY)
-    yield c
-    await session.close()
-    await connector.close()
+def _make_session(response: MagicMock) -> MagicMock:
+    """Create a mock aiohttp session that returns response from post()."""
+    session = MagicMock(spec=aiohttp.ClientSession)
+    ctx = MagicMock()
+    ctx.__aenter__ = AsyncMock(return_value=response)
+    ctx.__aexit__ = AsyncMock(return_value=False)
+    session.post.return_value = ctx
+    return session
 
 
-async def test_ping_success(mock_api: aioresponses, client: PorkbunClient) -> None:
+def _client(session: MagicMock) -> PorkbunClient:
+    return PorkbunClient(session, API_KEY, SECRET_KEY)
+
+
+async def test_ping_success() -> None:
     """Test successful ping returns IP."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/ping",
-        payload={"status": "SUCCESS", "yourIp": "1.2.3.4"},
-    )
-    ip = await client.ping()
+    resp = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
+    session = _make_session(resp)
+    ip = await _client(session).ping()
     assert ip == "1.2.3.4"
 
 
-async def test_ping_auth_error(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_ping_auth_error() -> None:
     """Test ping with invalid credentials raises PorkbunAuthError."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/ping",
-        payload={"status": "ERROR", "message": "Invalid API key"},
-    )
+    resp = _mock_response({"status": "ERROR", "message": "Invalid API key"})
+    session = _make_session(resp)
     with pytest.raises(PorkbunAuthError, match="Invalid API key"):
-        await client.ping()
+        await _client(session).ping()
 
 
-async def test_ping_network_error(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_ping_network_error() -> None:
     """Test ping with network error raises ClientError."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/ping",
-        exception=aiohttp.ClientConnectionError("Connection refused"),
-    )
+    session = MagicMock(spec=aiohttp.ClientSession)
+    session.post.side_effect = aiohttp.ClientConnectionError("Connection refused")
     with pytest.raises(aiohttp.ClientConnectionError):
-        await client.ping()
+        await _client(session).ping()
 
 
-async def test_get_records_success(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_get_records_success() -> None:
     """Test retrieving DNS records."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/retrieveByNameType/example.com/A",
-        payload={
+    resp = _mock_response(
+        {
             "status": "SUCCESS",
             "records": [
                 {
@@ -82,19 +79,19 @@ async def test_get_records_success(mock_api: aioresponses, client: PorkbunClient
                     "notes": "",
                 }
             ],
-        },
+        }
     )
-    records = await client.get_records("example.com", "A")
+    session = _make_session(resp)
+    records = await _client(session).get_records("example.com", "A")
     assert len(records) == 1
     assert records[0].content == "1.2.3.4"
     assert records[0].record_type == "A"
 
 
-async def test_get_records_with_subdomain(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_get_records_with_subdomain() -> None:
     """Test retrieving DNS records for a subdomain."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/retrieveByNameType/example.com/A/www",
-        payload={
+    resp = _mock_response(
+        {
             "status": "SUCCESS",
             "records": [
                 {
@@ -107,66 +104,63 @@ async def test_get_records_with_subdomain(mock_api: aioresponses, client: Porkbu
                     "notes": "",
                 }
             ],
-        },
+        }
     )
-    records = await client.get_records("example.com", "A", "www")
+    session = _make_session(resp)
+    records = await _client(session).get_records("example.com", "A", "www")
     assert len(records) == 1
     assert records[0].name == "www.example.com"
+    call_url = session.post.call_args[0][0]
+    assert "/www" in call_url
 
 
-async def test_get_records_empty(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_get_records_empty() -> None:
     """Test retrieving records when none exist returns empty list."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/retrieveByNameType/example.com/A",
-        payload={"status": "ERROR", "message": "No records found"},
-    )
-    records = await client.get_records("example.com", "A")
+    resp = _mock_response({"status": "ERROR", "message": "No records found"})
+    session = _make_session(resp)
+    records = await _client(session).get_records("example.com", "A")
     assert records == []
 
 
-async def test_create_record(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_create_record() -> None:
     """Test creating a DNS record."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/create/example.com",
-        payload={"status": "SUCCESS", "id": "789"},
-    )
-    record_id = await client.create_record("example.com", "A", "1.2.3.4")
+    resp = _mock_response({"status": "SUCCESS", "id": "789"})
+    session = _make_session(resp)
+    record_id = await _client(session).create_record("example.com", "A", "1.2.3.4")
     assert record_id == "789"
 
 
-async def test_create_record_with_subdomain(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_create_record_with_subdomain() -> None:
     """Test creating a DNS record for a subdomain."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/create/example.com",
-        payload={"status": "SUCCESS", "id": "790"},
-    )
-    record_id = await client.create_record("example.com", "A", "1.2.3.4", "www")
+    resp = _mock_response({"status": "SUCCESS", "id": "790"})
+    session = _make_session(resp)
+    record_id = await _client(session).create_record("example.com", "A", "1.2.3.4", "www")
     assert record_id == "790"
+    call_kwargs = session.post.call_args[1]
+    assert call_kwargs["json"]["name"] == "www"
 
 
-async def test_edit_record_by_name_type(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_edit_record_by_name_type() -> None:
     """Test editing a DNS record by name and type."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/editByNameType/example.com/A",
-        payload={"status": "SUCCESS"},
-    )
-    await client.edit_record_by_name_type("example.com", "A", "5.6.7.8")
+    resp = _mock_response({"status": "SUCCESS"})
+    session = _make_session(resp)
+    await _client(session).edit_record_by_name_type("example.com", "A", "5.6.7.8")
+    call_url = session.post.call_args[0][0]
+    assert "editByNameType/example.com/A" in call_url
 
 
-async def test_edit_record_with_subdomain(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_edit_record_with_subdomain() -> None:
     """Test editing a DNS record for a subdomain."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/editByNameType/example.com/A/www",
-        payload={"status": "SUCCESS"},
-    )
-    await client.edit_record_by_name_type("example.com", "A", "5.6.7.8", "www")
+    resp = _mock_response({"status": "SUCCESS"})
+    session = _make_session(resp)
+    await _client(session).edit_record_by_name_type("example.com", "A", "5.6.7.8", "www")
+    call_url = session.post.call_args[0][0]
+    assert "editByNameType/example.com/A/www" in call_url
 
 
-async def test_api_error(mock_api: aioresponses, client: PorkbunClient) -> None:
+async def test_api_error() -> None:
     """Test generic API error raises PorkbunApiError."""
-    mock_api.post(
-        f"{PORKBUN_API_BASE}/dns/create/example.com",
-        payload={"status": "ERROR", "message": "Something went wrong"},
-    )
+    resp = _mock_response({"status": "ERROR", "message": "Something went wrong"})
+    session = _make_session(resp)
     with pytest.raises(PorkbunApiError, match="Something went wrong"):
-        await client.create_record("example.com", "A", "1.2.3.4")
+        await _client(session).create_record("example.com", "A", "1.2.3.4")

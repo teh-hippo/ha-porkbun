@@ -3,10 +3,7 @@
     "step": {
       "user": {
         "title": "Porkbun API Credentials",
-        "description": "Enter your Porkbun API key and secret key. You can create these at {api_url}.",
-        "description_placeholders": {
-          "api_url": "[porkbun.com/account/api](https://porkbun.com/account/api)"
-        },
+        "description": "Enter your Porkbun API key and secret key. You can create these at porkbun.com/account/api.",
         "data": {
           "api_key": "API Key",
           "secret_key": "Secret API Key"
