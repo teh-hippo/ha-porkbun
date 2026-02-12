@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.8.0 (2026-02-12)
+
+### Features
+
+- Add domain expiry and WHOIS privacy sensors
+  ([`8f1fa81`](https://github.com/teh-hippo/ha-porkbun/commit/8f1fa81cf7b512b9ed1816a427fbad62a8c868cf))
+
+- Add DomainInfo dataclass and get_domain_info() API method (uses domain/listAll endpoint) -
+  Coordinator fetches domain registration info on each update (non-critical, gracefully handles
+  failures) - New sensors (both disabled by default): - Domain Expiry: timestamp sensor showing
+  registration expiry date - WHOIS Privacy: binary sensor showing privacy protection status - Add
+  icons.json entries for new sensors - Add 5 new tests (API + sensor registration + values) - 34
+  total tests passing
+
+
 ## v0.7.0 (2026-02-12)
 
 ### Features
