@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.porkbun_ddns.api import PorkbunApiError
@@ -22,6 +23,14 @@ from custom_components.porkbun_ddns.const import (
 )
 
 from .conftest import MOCK_API_KEY, MOCK_DOMAIN, MOCK_SECRET_KEY
+
+
+def _get_entity_id(hass: HomeAssistant, platform: str, unique_id: str) -> str:
+    """Look up entity_id by unique_id via entity registry."""
+    ent_reg = er.async_get(hass)
+    entity_id = ent_reg.async_get_entity_id(platform, DOMAIN, unique_id)
+    assert entity_id is not None, f"Entity not found: {platform}.{unique_id}"
+    return entity_id
 
 
 @pytest.fixture(autouse=True)
@@ -59,7 +68,7 @@ async def test_health_sensor_healthy(hass: HomeAssistant, mock_porkbun_client: A
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get(f"binary_sensor.{MOCK_DOMAIN.replace('.', '_')}_dns_status")
+    state = hass.states.get(_get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_health"))
     assert state is not None
     assert state.state == "off"  # off = no problem = healthy ✅
     assert state.attributes["summary"] == "2/2 OK"
@@ -83,7 +92,7 @@ async def test_health_sensor_partial_failure(hass: HomeAssistant, mock_porkbun_c
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get(f"binary_sensor.{MOCK_DOMAIN.replace('.', '_')}_dns_status")
+    state = hass.states.get(_get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_health"))
     assert state is not None
     assert state.state == "on"  # on = problem detected
     assert "1/2" in state.attributes["summary"]
@@ -159,6 +168,6 @@ async def test_health_sensor_extra_attributes_with_failures(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get(f"binary_sensor.{MOCK_DOMAIN.replace('.', '_')}_dns_status")
+    state = hass.states.get(_get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_health"))
     assert state is not None
     assert "failed_records" in state.attributes

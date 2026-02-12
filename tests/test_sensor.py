@@ -25,6 +25,14 @@ from custom_components.porkbun_ddns.const import (
 from .conftest import MOCK_API_KEY, MOCK_DOMAIN, MOCK_SECRET_KEY
 
 
+def _get_entity_id(hass: HomeAssistant, platform: str, unique_id: str) -> str:
+    """Look up entity_id by unique_id via entity registry."""
+    ent_reg = er.async_get(hass)
+    entity_id = ent_reg.async_get_entity_id(platform, DOMAIN, unique_id)
+    assert entity_id is not None, f"Entity not found: {platform}.{unique_id}"
+    return entity_id
+
+
 @pytest.fixture(autouse=True)
 def _enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations."""
@@ -103,7 +111,7 @@ async def test_last_updated_sensor_value(hass: HomeAssistant, mock_porkbun_clien
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.example_com_last_updated")
+    state = hass.states.get(_get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_last_updated"))
     assert state is not None
     # Should be a valid ISO timestamp
     assert state.state != "unknown"
@@ -117,7 +125,7 @@ async def test_next_update_sensor_value(hass: HomeAssistant, mock_porkbun_client
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get("sensor.example_com_next_update")
+    state = hass.states.get(_get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_next_update"))
     assert state is not None
     assert state.state != "unknown"
     assert state.state != "unavailable"
@@ -137,14 +145,12 @@ async def test_domain_expiry_sensor_value(hass: HomeAssistant, mock_porkbun_clie
     await hass.async_block_till_done()
 
     ent_reg = er.async_get(hass)
-    ent_reg.async_update_entity(
-        f"sensor.{MOCK_DOMAIN.replace('.', '_')}_domain_expiry",
-        disabled_by=None,
-    )
+    expiry_id = _get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_domain_expiry")
+    ent_reg.async_update_entity(expiry_id, disabled_by=None)
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get(f"sensor.{MOCK_DOMAIN.replace('.', '_')}_domain_expiry")
+    state = hass.states.get(expiry_id)
     assert state is not None
     assert state.state != "unavailable"
 
@@ -163,13 +169,11 @@ async def test_domain_expiry_sensor_invalid_date(hass: HomeAssistant, mock_porkb
     await hass.async_block_till_done()
 
     ent_reg = er.async_get(hass)
-    ent_reg.async_update_entity(
-        f"sensor.{MOCK_DOMAIN.replace('.', '_')}_domain_expiry",
-        disabled_by=None,
-    )
+    expiry_id = _get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_domain_expiry")
+    ent_reg.async_update_entity(expiry_id, disabled_by=None)
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
 
-    state = hass.states.get(f"sensor.{MOCK_DOMAIN.replace('.', '_')}_domain_expiry")
+    state = hass.states.get(expiry_id)
     # Should not crash, just return None/unknown
     assert state is not None

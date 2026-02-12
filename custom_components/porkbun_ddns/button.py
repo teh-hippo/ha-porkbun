@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -30,8 +31,9 @@ class DdnsForceUpdateButton(CoordinatorEntity[PorkbunDdnsCoordinator], ButtonEnt
     """Button to trigger an immediate DDNS update."""
 
     _attr_has_entity_name = True
-    _attr_name = "Update DNS"
+    _attr_translation_key = "update_dns"
     _attr_icon = "mdi:refresh"
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,

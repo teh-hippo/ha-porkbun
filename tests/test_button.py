@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.porkbun_ddns.const import (
@@ -69,10 +70,13 @@ async def test_button_press_triggers_refresh(hass: HomeAssistant, mock_porkbun_c
     await hass.async_block_till_done()
 
     # Press the button
+    ent_reg = er.async_get(hass)
+    button_id = ent_reg.async_get_entity_id("button", DOMAIN, f"{MOCK_DOMAIN}_force_update")
+    assert button_id is not None
     await hass.services.async_call(
         "button",
         "press",
-        {"entity_id": f"button.{MOCK_DOMAIN.replace('.', '_')}_update_dns"},
+        {"entity_id": button_id},
         blocking=True,
     )
 

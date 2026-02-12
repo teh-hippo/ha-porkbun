@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -58,6 +59,7 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:ip-network"
     _attr_entity_registry_enabled_default = False
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -69,8 +71,8 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
         super().__init__(coordinator)
         self._record_type = record_type
         self._domain_name = domain_name
-        ip_version = "IPv4" if record_type == "A" else "IPv6"
-        self._attr_name = f"Public {ip_version}"
+        ip_version = "ipv4" if record_type == "A" else "ipv6"
+        self._attr_translation_key = f"public_{ip_version}"
         self._attr_unique_id = f"{domain_name}_{record_type}_ip"
         self._attr_device_info = _device_info(domain_name)
 
@@ -109,7 +111,7 @@ class DdnsLastUpdatedSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnt
         """Initialize the last updated sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_last_updated"
-        self._attr_name = "Last Updated"
+        self._attr_translation_key = "last_updated"
         self._attr_device_info = _device_info(domain_name)
 
     @property
@@ -135,7 +137,7 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
         """Initialize the next update sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_next_update"
-        self._attr_name = "Next Update"
+        self._attr_translation_key = "next_update"
         self._attr_device_info = _device_info(domain_name)
 
     @property
@@ -156,6 +158,7 @@ class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEn
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _attr_icon = "mdi:calendar-clock"
     _attr_entity_registry_enabled_default = False
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -165,7 +168,7 @@ class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEn
         """Initialize the domain expiry sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_domain_expiry"
-        self._attr_name = "Domain Expiry"
+        self._attr_translation_key = "domain_expiry"
         self._attr_device_info = _device_info(domain_name)
 
     @property

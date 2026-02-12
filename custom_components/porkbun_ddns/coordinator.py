@@ -174,7 +174,10 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             return data
 
         except PorkbunAuthError as err:
-            raise ConfigEntryAuthFailed(str(err)) from err
+            raise ConfigEntryAuthFailed(
+                translation_domain=DOMAIN,
+                translation_key="auth_failed",
+            ) from err
         except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
             # Domain-level failure (e.g. ping failed) — mark all records as failed
             for state in data.records.values():
@@ -191,7 +194,11 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                     translation_key="api_access_disabled",
                     translation_placeholders={"domain": self._domain},
                 )
-            raise UpdateFailed(f"Porkbun DDNS error: {err}") from err
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="update_failed",
+                translation_placeholders={"domain": self._domain, "error": str(err)},
+            ) from err
 
     async def _update_record(
         self,

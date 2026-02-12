@@ -6,6 +6,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -38,7 +39,7 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
     """Binary sensor showing DDNS health status (problem class: off = healthy ✅)."""
 
     _attr_has_entity_name = True
-    _attr_name = "DNS Status"
+    _attr_translation_key = "dns_status"
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
 
     def __init__(
@@ -99,9 +100,10 @@ class DdnsWhoisPrivacySensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySe
     """Binary sensor showing WHOIS privacy status."""
 
     _attr_has_entity_name = True
-    _attr_name = "WHOIS Privacy"
+    _attr_translation_key = "whois_privacy"
     _attr_icon = "mdi:shield-account"
     _attr_entity_registry_enabled_default = False
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,

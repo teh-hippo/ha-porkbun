@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 
 from .const import CONF_DOMAIN, DOMAIN, LOGGER
@@ -41,3 +42,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry)
 async def _async_update_listener(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) -> None:
     """Handle options update — reload the entry to pick up new settings."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant,
+    config_entry: PorkbunDdnsConfigEntry,
+    device_entry: dr.DeviceEntry,
+) -> bool:
+    """Allow removal of a device if it is no longer active."""
+    domain_name: str = config_entry.data[CONF_DOMAIN]
+    return not any(identifier for identifier in device_entry.identifiers if identifier == (DOMAIN, domain_name))

@@ -161,6 +161,58 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Handle reconfiguration of domain settings."""
+        errors: dict[str, str] = {}
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        assert entry is not None
+
+        if user_input is not None:
+            domain_name = user_input[CONF_DOMAIN].strip().lower()
+            subdomains = _parse_subdomains(user_input.get(CONF_SUBDOMAINS, ""))
+
+            try:
+                session = async_get_clientsession(self.hass)
+                client = PorkbunClient(session, entry.data[CONF_API_KEY], entry.data[CONF_SECRET_KEY])
+                await client.get_records(domain_name, "A")
+            except PorkbunAuthError:
+                errors["base"] = "domain_not_found"
+            except (aiohttp.ClientError, TimeoutError):
+                errors["base"] = "cannot_connect"
+            except Exception:
+                LOGGER.exception("Unexpected error during reconfiguration")
+                errors["base"] = "unknown"
+            else:
+                return self.async_update_reload_and_abort(
+                    entry,
+                    unique_id=domain_name,
+                    title=domain_name,
+                    data={**entry.data, CONF_DOMAIN: domain_name},
+                    options={
+                        **entry.options,
+                        CONF_SUBDOMAINS: subdomains,
+                        CONF_IPV4: user_input.get(CONF_IPV4, True),
+                        CONF_IPV6: user_input.get(CONF_IPV6, False),
+                    },
+                )
+
+        current = entry.options
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_DOMAIN, default=entry.data.get(CONF_DOMAIN, "")): str,
+                    vol.Optional(
+                        CONF_SUBDOMAINS,
+                        default=", ".join(current.get(CONF_SUBDOMAINS, [])),
+                    ): str,
+                    vol.Optional(CONF_IPV4, default=current.get(CONF_IPV4, True)): bool,
+                    vol.Optional(CONF_IPV6, default=current.get(CONF_IPV6, False)): bool,
+                }
+            ),
+            errors=errors,
+        )
+
 
 class PorkbunDdnsOptionsFlow(OptionsFlow):
     """Handle options for Porkbun DDNS."""

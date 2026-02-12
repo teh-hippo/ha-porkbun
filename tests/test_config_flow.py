@@ -400,3 +400,44 @@ async def test_options_flow(hass: HomeAssistant, mock_porkbun_client: AsyncMock)
     assert result["data"][CONF_IPV4] is True
     assert result["data"][CONF_IPV6] is True
     assert result["data"][CONF_UPDATE_INTERVAL] == 600
+
+
+# --- Reconfigure flow tests ---
+
+
+async def test_reconfigure_flow(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test successful reconfiguration flow."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=MOCK_DOMAIN,
+        data={CONF_API_KEY: MOCK_API_KEY, CONF_SECRET_KEY: MOCK_SECRET_KEY, CONF_DOMAIN: MOCK_DOMAIN},
+        options={
+            CONF_SUBDOMAINS: ["www"],
+            CONF_IPV4: True,
+            CONF_IPV6: False,
+            CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+        },
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch(
+        "custom_components.porkbun_ddns.config_flow.PorkbunClient",
+        autospec=True,
+    ) as mock_cls:
+        mock_cls.return_value.get_records = AsyncMock(return_value=[])
+
+        result = await entry.start_reconfigure_flow(hass)
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "reconfigure"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_DOMAIN: MOCK_DOMAIN, CONF_SUBDOMAINS: "www, api", CONF_IPV4: True, CONF_IPV6: True},
+        )
+
+        assert result["type"] is FlowResultType.ABORT
+        assert result["reason"] == "reconfigure_successful"

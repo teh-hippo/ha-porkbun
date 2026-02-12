@@ -98,6 +98,48 @@ To trigger from an automation, use the `button.press` service targeting the "Upd
 
 Removing the integration does **not** delete your DNS records from Porkbun — it only stops automatic updates.
 
+## How Data Updates Work
+
+The integration polls the [Porkbun API](https://porkbun.com/api/json/v3/documentation) at a configurable interval (default: every 5 minutes).
+
+Each update cycle:
+
+1. Calls `/ping` on `api-ipv4.porkbun.com` to get your current public IPv4 (and optionally IPv6 via `api6.ipify.org`)
+2. Retrieves current DNS A/AAAA records for each configured subdomain
+3. Compares the current IP with the DNS record — updates only when different
+4. Fetches domain registration info (expiry date, WHOIS privacy status)
+
+Use the **Update DNS** button entity to trigger an immediate check outside the polling schedule.
+
+## Use Cases
+
+- **Home server** — keep a subdomain pointing at your dynamic home IP (e.g., `home.example.com`)
+- **VPN / WireGuard** — maintain a DNS entry for your VPN endpoint
+- **Self-hosted services** — run web apps, game servers, or NAS access from a residential connection
+- **Multiple subdomains** — manage `www`, `api`, `vpn`, etc. under one domain with a single config entry
+
+## Known Limitations
+
+- **Polling only** — the Porkbun API does not support webhooks or push notifications, so IP changes are detected on the next poll cycle
+- **IPv6 detection** — uses the third-party service `api6.ipify.org`; if it is unavailable, IPv6 updates are skipped until the next cycle
+- **Minimum TTL** — Porkbun enforces a minimum DNS TTL of 600 seconds (10 minutes)
+- **API rate limits** — Porkbun does not document specific rate limits; the default 5-minute interval is conservative and respectful
+- **One IP per record type** — each subdomain gets one A record (IPv4) and/or one AAAA record (IPv6)
+
+## Supported Functions
+
+| Platform | Entity | Description |
+|---|---|---|
+| `sensor` | Public IPv4 | Current public IPv4 address (diagnostic, disabled by default) |
+| `sensor` | Public IPv6 | Current public IPv6 address (diagnostic, disabled by default) |
+| `sensor` | Last Updated | When records were last checked |
+| `sensor` | Next Update | When the next check is scheduled |
+| `sensor` | Domain Expiry | Domain registration expiry date (diagnostic, disabled by default) |
+| `binary_sensor` | DNS Status | Healthy or problem detected across all managed records |
+| `binary_sensor` | WHOIS Privacy | Whether WHOIS privacy is enabled (diagnostic, disabled by default) |
+| `button` | Update DNS | Force an immediate DNS update check |
+| `diagnostics` | Config Entry | Download diagnostics with redacted API keys |
+
 ## Troubleshooting
 
 | Problem | Solution |
