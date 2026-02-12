@@ -137,5 +137,5 @@ This integration uses the [Porkbun API v3](https://porkbun.com/api/json/v3/docum
 [release-url]: https://github.com/teh-hippo/ha-porkbun/releases
 [license-badge]: https://img.shields.io/github/license/teh-hippo/ha-porkbun
 [license-url]: https://github.com/teh-hippo/ha-porkbun/blob/master/LICENSE
-[validate-badge]: https://img.shields.io/github/actions/workflow/status/teh-hippo/ha-porkbun/validate.yml?label=validate
+[validate-badge]: https://img.shields.io/github/actions/workflow/status/teh-hippo/ha-porkbun/validate.yml?branch=master&label=validate
 [validate-url]: https://github.com/teh-hippo/ha-porkbun/actions/workflows/validate.yml
