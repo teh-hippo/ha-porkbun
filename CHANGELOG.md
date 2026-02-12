@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v0.6.0 (2026-02-12)
+
+### Features
+
+- Add force-update button, health status sensor, disable IP by default
+  ([`b1413be`](https://github.com/teh-hippo/ha-porkbun/commit/b1413beff63afd166d278329b0c9ab55de6908d0))
+
+- Add button entity to trigger immediate DDNS update - Add binary_sensor with device_class=problem
+  for health status (✅/❌) - Per-record error tracking in coordinator (isolated failures) - IP
+  sensors disabled by default (entity_registry_enabled_default=False) - Health sensor shows 'N/N OK'
+  summary with failed record details - Tests for button, binary_sensor, updated sensor tests (29
+  total)
+
+
 ## v0.5.0 (2026-02-12)
 
 ### Features
