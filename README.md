@@ -16,7 +16,7 @@ Automatically keeps your [Porkbun](https://porkbun.com)-managed DNS records upda
 - 🔄 **Automatic DDNS updates** — checks your public IP and updates Porkbun DNS records when it changes
 - 🌐 **IPv4 + IPv6** — A and AAAA record support (IPv6 opt-in)
 - 🏠 **Multiple domains** — each domain is a separate config entry
-- 📊 **Sensors** — current IP, last updated, next update, last IP change per subdomain
+- 📊 **Sensors** — public IP, last updated, next update — clean device-level view
 - 🔧 **Repair issues** — surfaces problems (e.g., API access not enabled) in HA's repair dashboard
 - ⚙️ **Configurable** — update interval, subdomains, and IP version toggles via options flow
 - 🎨 **UI-based setup** — two-step config flow, no YAML needed
@@ -68,15 +68,16 @@ Add the integration multiple times — once per domain. Each domain is independe
 
 ## Sensors
 
-For each domain (and each subdomain), the integration creates:
+Each domain creates one device with three sensors:
 
 | Sensor | Description |
 |---|---|
-| **IPv4 Address** | Current public IPv4 on file at Porkbun |
-| **IPv6 Address** | Current public IPv6 (if IPv6 enabled) |
-| **Last Updated** | When the integration last checked for changes |
-| **Next Update** | When the next check is scheduled |
-| **Last IP Change** | When the IP address actually changed |
+| **Public IPv4** | Your current public IPv4 address. Includes a `managed_records` attribute listing all DNS records being updated. |
+| **Public IPv6** | Your current public IPv6 address (only if IPv6 enabled) |
+| **Last Updated** | When the integration last checked and updated DNS records |
+| **Next Update** | When the next scheduled check will occur |
+
+> All subdomains under the same domain share the same public IP — that's how DDNS works. The managed records (root domain + all subdomains) are listed as an attribute on the IP sensor.
 
 ## Troubleshooting
 

@@ -11,7 +11,7 @@
       },
       "domain": {
         "title": "Domain Configuration",
-        "description": "Configure the domain and optional subdomains for DDNS updates.",
+        "description": "Configure the domain and optional subdomains for DDNS updates. The root domain is always included.",
         "data": {
           "domain": "Domain (e.g., example.com)",
           "subdomains": "Subdomains (comma-separated, optional)",
@@ -44,7 +44,7 @@
       "init": {
         "title": "Porkbun DDNS Options",
         "data": {
-          "update_interval": "Update interval (seconds)",
+          "update_interval": "Update interval (seconds, default 300)",
           "subdomains": "Subdomains (comma-separated)",
           "ipv4": "Update IPv4 (A record)",
           "ipv6": "Update IPv6 (AAAA record)"

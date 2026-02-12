@@ -27,17 +27,13 @@ async def async_setup_entry(
 
     entities: list[SensorEntity] = []
 
-    # Device-level sensors (one per TLD)
+    # All sensors are device-level (one per TLD)
+    if coordinator.ipv4_enabled:
+        entities.append(DdnsIpSensor(coordinator, domain_name, "A"))
+    if coordinator.ipv6_enabled:
+        entities.append(DdnsIpSensor(coordinator, domain_name, "AAAA"))
     entities.append(DdnsLastUpdatedSensor(coordinator, domain_name))
     entities.append(DdnsNextUpdateSensor(coordinator, domain_name))
-
-    # Per-subdomain IP sensors
-    targets = [""] + coordinator.subdomains
-    for subdomain in targets:
-        if coordinator.ipv4_enabled:
-            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "A"))
-        if coordinator.ipv6_enabled:
-            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "AAAA"))
 
     async_add_entities(entities)
 
@@ -55,41 +51,44 @@ def _device_info(domain_name: str) -> DeviceInfo:
 
 
 class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
-    """Sensor showing the current IP address for a DNS record."""
+    """Device-level sensor showing the current public IP address."""
 
     _attr_has_entity_name = True
+    _attr_icon = "mdi:ip-network"
 
     def __init__(
         self,
         coordinator: PorkbunDdnsCoordinator,
         domain_name: str,
-        subdomain: str,
         record_type: str,
     ) -> None:
         """Initialize the IP sensor."""
         super().__init__(coordinator)
-        self._subdomain = subdomain
         self._record_type = record_type
+        self._domain_name = domain_name
         ip_version = "IPv4" if record_type == "A" else "IPv6"
-
-        # Name: "IPv4" for root, "ha.totesnotexternal IPv4" for subdomain
-        if subdomain:
-            self._attr_name = f"{subdomain} {ip_version}"
-        else:
-            self._attr_name = ip_version
-
-        self._attr_unique_id = f"{domain_name}_{subdomain or '@'}_{record_type}_ip"
-        self._attr_icon = "mdi:ip-network"
+        self._attr_name = f"Public {ip_version}"
+        self._attr_unique_id = f"{domain_name}_{record_type}_ip"
         self._attr_device_info = _device_info(domain_name)
 
     @property
     def native_value(self) -> str | None:
-        """Return the current IP address."""
+        """Return the current public IP address."""
         if not self.coordinator.data:
             return None
-        key = self.coordinator.data.record_key(self._subdomain, self._record_type)
-        state = self.coordinator.data.records.get(key)
-        return state.current_ip if state else None
+        if self._record_type == "A":
+            return self.coordinator.data.public_ipv4
+        return self.coordinator.data.public_ipv6
+
+    @property
+    def extra_state_attributes(self) -> dict[str, str]:
+        """Return managed DNS records as attributes."""
+        targets = [""] + self.coordinator.subdomains
+        records = []
+        for sub in targets:
+            fqdn = f"{sub}.{self._domain_name}" if sub else self._domain_name
+            records.append(fqdn)
+        return {"managed_records": records}
 
 
 class DdnsLastUpdatedSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
