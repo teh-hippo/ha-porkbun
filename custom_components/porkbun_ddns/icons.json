@@ -1,0 +1,18 @@
+{
+  "entity": {
+    "sensor": {
+      "ipv4": {
+        "default": "mdi:ip-network"
+      },
+      "ipv6": {
+        "default": "mdi:ip-network"
+      },
+      "last_updated": {
+        "default": "mdi:clock-check-outline"
+      },
+      "next_update": {
+        "default": "mdi:clock-fast"
+      }
+    }
+  }
+}
