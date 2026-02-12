@@ -1,0 +1,61 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Porkbun API Credentials",
+        "description": "Enter your Porkbun API key and secret key. You can create these at [porkbun.com/account/api](https://porkbun.com/account/api).",
+        "data": {
+          "api_key": "API Key",
+          "secret_key": "Secret API Key"
+        }
+      },
+      "domain": {
+        "title": "Domain Configuration",
+        "description": "Configure the domain and optional subdomains for DDNS updates.",
+        "data": {
+          "domain": "Domain (e.g., example.com)",
+          "subdomains": "Subdomains (comma-separated, optional)",
+          "ipv4": "Update IPv4 (A record)",
+          "ipv6": "Update IPv6 (AAAA record)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Porkbun",
+        "description": "Your API credentials are no longer valid. Please enter new credentials.",
+        "data": {
+          "api_key": "API Key",
+          "secret_key": "Secret API Key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to reach the Porkbun API. Please check your network connection.",
+      "invalid_auth": "Invalid API key or secret key. Please check your credentials.",
+      "domain_not_found": "Domain not accessible with these API keys. Ensure API access is enabled for this domain in your Porkbun dashboard.",
+      "unknown": "An unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This domain is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Porkbun DDNS Options",
+        "data": {
+          "update_interval": "Update interval (seconds)",
+          "subdomains": "Subdomains (comma-separated)",
+          "ipv4": "Update IPv4 (A record)",
+          "ipv6": "Update IPv6 (AAAA record)"
+        }
+      }
+    }
+  },
+  "issues": {
+    "api_access_disabled": {
+      "title": "API access not enabled for {domain}",
+      "description": "The Porkbun API returned an error for **{domain}**. Please ensure API access is enabled in your [Porkbun domain settings](https://porkbun.com/account/domainsSpe498).\n\nWithout API access enabled, DDNS updates cannot be performed."
+    }
+  }
+}
