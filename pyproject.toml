@@ -14,6 +14,7 @@ testpaths = ["tests"]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = [
     "custom_components/porkbun_ddns/const.py:__version__",
+    "custom_components/porkbun_ddns/manifest.json:version",
 ]
 build_command = ""
 commit_message = "chore(release): {version}"
