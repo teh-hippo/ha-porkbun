@@ -9,6 +9,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import PorkbunAuthError, PorkbunClient
 from .const import (
@@ -63,9 +64,9 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                async with aiohttp.ClientSession() as session:
-                    client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
-                    await client.ping()
+                session = async_get_clientsession(self.hass)
+                client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
+                await client.ping()
             except PorkbunAuthError:
                 errors["base"] = "invalid_auth"
             except (aiohttp.ClientError, TimeoutError):
@@ -93,9 +94,9 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
             # Validate domain is accessible with these keys
             try:
-                async with aiohttp.ClientSession() as session:
-                    client = PorkbunClient(session, self._api_key, self._secret_key)
-                    await client.get_records(domain_name, "A")
+                session = async_get_clientsession(self.hass)
+                client = PorkbunClient(session, self._api_key, self._secret_key)
+                await client.get_records(domain_name, "A")
             except PorkbunAuthError:
                 errors["base"] = "domain_not_found"
             except (aiohttp.ClientError, TimeoutError):
@@ -131,9 +132,9 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                async with aiohttp.ClientSession() as session:
-                    client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
-                    await client.ping()
+                session = async_get_clientsession(self.hass)
+                client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
+                await client.ping()
             except PorkbunAuthError:
                 errors["base"] = "invalid_auth"
             except (aiohttp.ClientError, TimeoutError):
