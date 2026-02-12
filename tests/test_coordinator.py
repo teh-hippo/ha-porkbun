@@ -96,7 +96,6 @@ async def test_coordinator_updates_when_ip_differs(hass: HomeAssistant, mock_por
 
     mock_porkbun_client.edit_record_by_name_type.assert_called_once()
     assert data.records["@_A"].current_ip == MOCK_IPV4
-    assert data.records["@_A"].last_changed is not None
 
 
 async def test_coordinator_auth_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:

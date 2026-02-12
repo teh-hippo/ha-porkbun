@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_DOMAIN, DOMAIN
-from .coordinator import PorkbunDdnsCoordinator, RecordState
+from .coordinator import PorkbunDdnsCoordinator
 
 
 async def async_setup_entry(
@@ -27,24 +27,35 @@ async def async_setup_entry(
 
     entities: list[SensorEntity] = []
 
-    # Root domain + subdomains
+    # Device-level sensors (one per TLD)
+    entities.append(DdnsLastUpdatedSensor(coordinator, domain_name))
+    entities.append(DdnsNextUpdateSensor(coordinator, domain_name))
+
+    # Per-subdomain IP sensors
     targets = [""] + coordinator.subdomains
     for subdomain in targets:
-        label = f"{subdomain}.{domain_name}" if subdomain else domain_name
-
         if coordinator.ipv4_enabled:
-            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "A", label))
+            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "A"))
         if coordinator.ipv6_enabled:
-            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "AAAA", label))
-        entities.append(DdnsLastUpdatedSensor(coordinator, domain_name, subdomain, label))
-        entities.append(DdnsLastChangedSensor(coordinator, domain_name, subdomain, label))
-        entities.append(DdnsNextUpdateSensor(coordinator, domain_name, subdomain, label))
+            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "AAAA"))
 
     async_add_entities(entities)
 
 
-class DdnsBaseSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
-    """Base class for DDNS sensors."""
+def _device_info(domain_name: str) -> DeviceInfo:
+    """Return shared device info for all sensors under a domain."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, domain_name)},
+        name=domain_name,
+        manufacturer="Porkbun",
+        model="DDNS",
+        entry_type=DeviceEntryType.SERVICE,
+        configuration_url=f"https://porkbun.com/account/domainsSpe498/{domain_name}",
+    )
+
+
+class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
+    """Sensor showing the current IP address for a DNS record."""
 
     _attr_has_entity_name = True
 
@@ -53,140 +64,84 @@ class DdnsBaseSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
         coordinator: PorkbunDdnsCoordinator,
         domain_name: str,
         subdomain: str,
-        label: str,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator)
-        self._domain_name = domain_name
-        self._subdomain = subdomain
-        self._label = label
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, domain_name)},
-            name=f"Porkbun DDNS: {domain_name}",
-            manufacturer="Porkbun",
-            entry_type=DeviceEntryType.SERVICE,
-        )
-
-    def _record_state(self, record_type: str) -> RecordState | None:
-        """Get record state for this subdomain and type."""
-        if not self.coordinator.data:
-            return None
-        key = self.coordinator.data.record_key(self._subdomain, record_type)
-        return self.coordinator.data.records.get(key)
-
-
-class DdnsIpSensor(DdnsBaseSensor):
-    """Sensor showing the current IP address for a DNS record."""
-
-    def __init__(
-        self,
-        coordinator: PorkbunDdnsCoordinator,
-        domain_name: str,
-        subdomain: str,
         record_type: str,
-        label: str,
     ) -> None:
         """Initialize the IP sensor."""
-        super().__init__(coordinator, domain_name, subdomain, label)
+        super().__init__(coordinator)
+        self._subdomain = subdomain
         self._record_type = record_type
         ip_version = "IPv4" if record_type == "A" else "IPv6"
+
+        # Name: "IPv4" for root, "ha.totesnotexternal IPv4" for subdomain
+        if subdomain:
+            self._attr_name = f"{subdomain} {ip_version}"
+        else:
+            self._attr_name = ip_version
+
         self._attr_unique_id = f"{domain_name}_{subdomain or '@'}_{record_type}_ip"
-        self._attr_name = f"{label} {ip_version} Address"
         self._attr_icon = "mdi:ip-network"
+        self._attr_device_info = _device_info(domain_name)
 
     @property
     def native_value(self) -> str | None:
         """Return the current IP address."""
-        state = self._record_state(self._record_type)
+        if not self.coordinator.data:
+            return None
+        key = self.coordinator.data.record_key(self._subdomain, self._record_type)
+        state = self.coordinator.data.records.get(key)
         return state.current_ip if state else None
 
 
-class DdnsLastUpdatedSensor(DdnsBaseSensor):
-    """Sensor showing when the record was last checked."""
+class DdnsLastUpdatedSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
+    """Device-level sensor showing when records were last checked."""
 
+    _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_icon = "mdi:clock-check-outline"
 
     def __init__(
         self,
         coordinator: PorkbunDdnsCoordinator,
         domain_name: str,
-        subdomain: str,
-        label: str,
     ) -> None:
         """Initialize the last updated sensor."""
-        super().__init__(coordinator, domain_name, subdomain, label)
-        self._attr_unique_id = f"{domain_name}_{subdomain or '@'}_last_updated"
-        self._attr_name = f"{label} Last Updated"
-        self._attr_icon = "mdi:clock-check-outline"
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{domain_name}_last_updated"
+        self._attr_name = "Last Updated"
+        self._attr_device_info = _device_info(domain_name)
 
     @property
     def native_value(self) -> datetime | None:
         """Return the last updated timestamp."""
-        # Use the first available record state for this subdomain
         if not self.coordinator.data:
             return None
-        for rt in ("A", "AAAA"):
-            state = self._record_state(rt)
-            if state and state.last_updated:
-                return state.last_updated
         return self.coordinator.data.last_updated
 
 
-class DdnsLastChangedSensor(DdnsBaseSensor):
-    """Sensor showing when the IP address last changed."""
+class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
+    """Device-level sensor showing when the next update check is scheduled."""
 
+    _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_icon = "mdi:clock-fast"
 
     def __init__(
         self,
         coordinator: PorkbunDdnsCoordinator,
         domain_name: str,
-        subdomain: str,
-        label: str,
-    ) -> None:
-        """Initialize the last changed sensor."""
-        super().__init__(coordinator, domain_name, subdomain, label)
-        self._attr_unique_id = f"{domain_name}_{subdomain or '@'}_last_changed"
-        self._attr_name = f"{label} Last IP Change"
-        self._attr_icon = "mdi:swap-horizontal"
-
-    @property
-    def native_value(self) -> datetime | None:
-        """Return the last changed timestamp."""
-        if not self.coordinator.data:
-            return None
-        latest: datetime | None = None
-        for rt in ("A", "AAAA"):
-            state = self._record_state(rt)
-            if state and state.last_changed:
-                if latest is None or state.last_changed > latest:
-                    latest = state.last_changed
-        return latest
-
-
-class DdnsNextUpdateSensor(DdnsBaseSensor):
-    """Sensor showing when the next update check is scheduled."""
-
-    _attr_device_class = SensorDeviceClass.TIMESTAMP
-
-    def __init__(
-        self,
-        coordinator: PorkbunDdnsCoordinator,
-        domain_name: str,
-        subdomain: str,
-        label: str,
     ) -> None:
         """Initialize the next update sensor."""
-        super().__init__(coordinator, domain_name, subdomain, label)
-        self._attr_unique_id = f"{domain_name}_{subdomain or '@'}_next_update"
-        self._attr_name = f"{label} Next Update"
-        self._attr_icon = "mdi:clock-fast"
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{domain_name}_next_update"
+        self._attr_name = "Next Update"
+        self._attr_device_info = _device_info(domain_name)
 
     @property
     def native_value(self) -> datetime | None:
         """Return the next scheduled update timestamp."""
         if not self.coordinator.data or not self.coordinator.data.last_updated:
             return None
-        return self.coordinator.data.last_updated + (
-            self.coordinator.update_interval or __import__("datetime").timedelta(seconds=300)
-        )
+        interval = self.coordinator.update_interval
+        if interval is None:
+            return None
+        return self.coordinator.data.last_updated + interval
