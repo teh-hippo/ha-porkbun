@@ -1,0 +1,31 @@
+[project]
+name = "ha-porkbun"
+version = "0.0.0"
+description = "Home Assistant integration for Porkbun DDNS"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+version_variables = [
+    "custom_components/porkbun_ddns/const.py:__version__",
+]
+build_command = false
+commit_message = "chore(release): {version}"
+tag_format = "v{version}"
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
+
+[tool.semantic_release.changelog]
+changelog_file = "CHANGELOG.md"
+
+[tool.semantic_release.remote]
+type = "github"
+token = { env = "GITHUB_TOKEN" }
