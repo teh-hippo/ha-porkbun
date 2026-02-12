@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
@@ -106,7 +106,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             session = self._get_session()
             client = PorkbunClient(session, self._api_key, self._secret_key)
             data = self.data or DdnsData()
-            now = datetime.now()
+            now = datetime.now(tz=UTC)
 
             # Get current public IPs
             if self.ipv4_enabled:
