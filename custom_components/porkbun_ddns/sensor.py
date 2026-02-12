@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.core import HomeAssistant
@@ -35,6 +35,7 @@ async def async_setup_entry(
         entities.append(DdnsIpSensor(coordinator, domain_name, "AAAA"))
     entities.append(DdnsLastUpdatedSensor(coordinator, domain_name))
     entities.append(DdnsNextUpdateSensor(coordinator, domain_name))
+    entities.append(DdnsDomainExpirySensor(coordinator, domain_name))
 
     async_add_entities(entities)
 
@@ -146,3 +147,36 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
         if interval is None:
             return None
         return self.coordinator.data.last_updated + interval
+
+
+class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
+    """Sensor showing when the domain registration expires."""
+
+    _attr_has_entity_name = True
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_icon = "mdi:calendar-clock"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self,
+        coordinator: PorkbunDdnsCoordinator,
+        domain_name: str,
+    ) -> None:
+        """Initialize the domain expiry sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{domain_name}_domain_expiry"
+        self._attr_name = "Domain Expiry"
+        self._attr_device_info = _device_info(domain_name)
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return the domain expiry date as a UTC timestamp."""
+        if not self.coordinator.data or not self.coordinator.data.domain_info:
+            return None
+        raw = self.coordinator.data.domain_info.expire_date
+        if not raw:
+            return None
+        try:
+            return datetime.strptime(raw, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC)
+        except ValueError:
+            return None

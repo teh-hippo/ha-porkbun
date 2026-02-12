@@ -78,3 +78,18 @@ async def test_ip_sensor_disabled_by_default(hass: HomeAssistant, mock_porkbun_c
     entity_entry = ent_reg.async_get(ip_entity)
     assert entity_entry is not None
     assert entity_entry.disabled_by is not None
+
+
+async def test_domain_expiry_sensor_disabled_by_default(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test that the domain expiry sensor is registered but disabled by default."""
+    entry = _make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    ent_reg = er.async_get(hass)
+    expiry_entity = ent_reg.async_get_entity_id("sensor", DOMAIN, f"{MOCK_DOMAIN}_domain_expiry")
+    assert expiry_entity is not None
+    entity_entry = ent_reg.async_get(expiry_entity)
+    assert entity_entry is not None
+    assert entity_entry.disabled_by is not None

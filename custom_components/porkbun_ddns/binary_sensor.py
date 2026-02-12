@@ -26,7 +26,12 @@ async def async_setup_entry(
     """Set up Porkbun DDNS binary sensors from a config entry."""
     coordinator = entry.runtime_data
     domain_name = entry.data[CONF_DOMAIN]
-    async_add_entities([DdnsHealthSensor(coordinator, domain_name)])
+    async_add_entities(
+        [
+            DdnsHealthSensor(coordinator, domain_name),
+            DdnsWhoisPrivacySensor(coordinator, domain_name),
+        ]
+    )
 
 
 class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEntity):
@@ -76,3 +81,41 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
                 attrs["failed_records"] = failed
 
         return attrs
+
+
+def _device_info(domain_name: str) -> DeviceInfo:
+    """Return shared device info for all binary sensors under a domain."""
+    return DeviceInfo(
+        identifiers={(DOMAIN, domain_name)},
+        name=domain_name,
+        manufacturer="Porkbun",
+        model="DDNS",
+        entry_type=DeviceEntryType.SERVICE,
+        configuration_url=f"https://porkbun.com/account/domainsSpe498/{domain_name}",
+    )
+
+
+class DdnsWhoisPrivacySensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEntity):
+    """Binary sensor showing WHOIS privacy status."""
+
+    _attr_has_entity_name = True
+    _attr_name = "WHOIS Privacy"
+    _attr_icon = "mdi:shield-account"
+    _attr_entity_registry_enabled_default = False
+
+    def __init__(
+        self,
+        coordinator: PorkbunDdnsCoordinator,
+        domain_name: str,
+    ) -> None:
+        """Initialize the WHOIS privacy sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{domain_name}_whois_privacy"
+        self._attr_device_info = _device_info(domain_name)
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True if WHOIS privacy is enabled."""
+        if not self.coordinator.data or not self.coordinator.data.domain_info:
+            return None
+        return self.coordinator.data.domain_info.whois_privacy

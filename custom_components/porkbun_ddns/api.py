@@ -35,6 +35,17 @@ class DnsRecord:
     notes: str
 
 
+@dataclass
+class DomainInfo:
+    """Domain registration info from Porkbun."""
+
+    domain: str
+    status: str
+    expire_date: str
+    whois_privacy: bool
+    auto_renew: bool
+
+
 class PorkbunClient:
     """Async client for the Porkbun API v3."""
 
@@ -141,3 +152,17 @@ class PorkbunClient:
             endpoint += f"/{subdomain}"
         extra: dict[str, Any] = {"content": content, "ttl": str(ttl)}
         await self._request(endpoint, extra)
+
+    async def get_domain_info(self, domain: str) -> DomainInfo | None:
+        """Get domain registration info via domain/listAll."""
+        data = await self._request("domain/listAll")
+        for d in data.get("domains", []):
+            if d.get("domain") == domain:
+                return DomainInfo(
+                    domain=d["domain"],
+                    status=d.get("status", "UNKNOWN"),
+                    expire_date=d.get("expireDate", ""),
+                    whois_privacy=d.get("whoisPrivacy", "0") == "1",
+                    auto_renew=d.get("autoRenew", "0") == "1",
+                )
+        return None

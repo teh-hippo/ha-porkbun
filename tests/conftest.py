@@ -63,4 +63,5 @@ def mock_porkbun_client() -> Generator[AsyncMock]:
         client.get_records = AsyncMock(return_value=[])
         client.create_record = AsyncMock(return_value="12345")
         client.edit_record_by_name_type = AsyncMock()
+        client.get_domain_info = AsyncMock(return_value=None)
         yield client

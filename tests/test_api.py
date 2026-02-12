@@ -164,3 +164,50 @@ async def test_api_error() -> None:
     session = _make_session(resp)
     with pytest.raises(PorkbunApiError, match="Something went wrong"):
         await _client(session).create_record("example.com", "A", "1.2.3.4")
+
+
+async def test_get_domain_info_found() -> None:
+    """Test getting domain info when domain is in the list."""
+    resp = _mock_response(
+        {
+            "status": "SUCCESS",
+            "domains": [
+                {
+                    "domain": "example.com",
+                    "status": "ACTIVE",
+                    "expireDate": "2026-02-18 23:59:59",
+                    "whoisPrivacy": "1",
+                    "autoRenew": "1",
+                }
+            ],
+        }
+    )
+    session = _make_session(resp)
+    info = await _client(session).get_domain_info("example.com")
+    assert info is not None
+    assert info.domain == "example.com"
+    assert info.status == "ACTIVE"
+    assert info.expire_date == "2026-02-18 23:59:59"
+    assert info.whois_privacy is True
+    assert info.auto_renew is True
+
+
+async def test_get_domain_info_not_found() -> None:
+    """Test getting domain info when domain is not in the list."""
+    resp = _mock_response(
+        {
+            "status": "SUCCESS",
+            "domains": [
+                {
+                    "domain": "other.com",
+                    "status": "ACTIVE",
+                    "expireDate": "2026-01-01 00:00:00",
+                    "whoisPrivacy": "0",
+                    "autoRenew": "0",
+                }
+            ],
+        }
+    )
+    session = _make_session(resp)
+    info = await _client(session).get_domain_info("example.com")
+    assert info is None

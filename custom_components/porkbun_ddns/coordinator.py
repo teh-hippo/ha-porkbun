@@ -13,7 +13,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import PorkbunApiError, PorkbunAuthError, PorkbunClient
+from .api import DomainInfo, PorkbunApiError, PorkbunAuthError, PorkbunClient
 from .const import (
     CONF_API_KEY,
     CONF_DOMAIN,
@@ -48,6 +48,7 @@ class DdnsData:
     public_ipv6: str | None = None
     records: dict[str, RecordState] = field(default_factory=dict)
     last_updated: datetime | None = None
+    domain_info: DomainInfo | None = None
 
     def record_key(self, subdomain: str, record_type: str) -> str:
         """Generate a unique key for a record."""
@@ -163,6 +164,13 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                     )
 
             data.last_updated = now
+
+            # Fetch domain registration info (non-critical, don't fail on error)
+            try:
+                data.domain_info = await client.get_domain_info(self._domain)
+            except (PorkbunApiError, aiohttp.ClientError, TimeoutError):
+                LOGGER.debug("Failed to fetch domain info for %s", self._domain)
+
             return data
 
         except PorkbunAuthError as err:

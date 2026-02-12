@@ -87,3 +87,54 @@ async def test_health_sensor_partial_failure(hass: HomeAssistant, mock_porkbun_c
     assert state is not None
     assert state.state == "on"  # on = problem detected
     assert "1/2" in state.attributes["summary"]
+
+
+async def test_whois_privacy_sensor_disabled_by_default(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test WHOIS privacy sensor is registered but disabled by default."""
+    from homeassistant.helpers import entity_registry as er
+
+    entry = _make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    ent_reg = er.async_get(hass)
+    entity_id = ent_reg.async_get_entity_id("binary_sensor", DOMAIN, f"{MOCK_DOMAIN}_whois_privacy")
+    assert entity_id is not None
+    entity_entry = ent_reg.async_get(entity_id)
+    assert entity_entry is not None
+    assert entity_entry.disabled_by is not None
+
+
+async def test_whois_privacy_sensor_value(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test WHOIS privacy sensor shows correct value when domain info is available."""
+    from homeassistant.helpers import entity_registry as er
+
+    from custom_components.porkbun_ddns.api import DomainInfo
+
+    mock_porkbun_client.get_domain_info.return_value = DomainInfo(
+        domain=MOCK_DOMAIN,
+        status="ACTIVE",
+        expire_date="2026-02-18 23:59:59",
+        whois_privacy=True,
+        auto_renew=True,
+    )
+
+    entry = _make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Enable the disabled-by-default sensor
+    ent_reg = er.async_get(hass)
+    entity_id = ent_reg.async_get_entity_id("binary_sensor", DOMAIN, f"{MOCK_DOMAIN}_whois_privacy")
+    assert entity_id is not None
+    ent_reg.async_update_entity(entity_id, disabled_by=None)
+
+    # Reload to pick up the enabled sensor
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "on"  # WHOIS privacy is enabled

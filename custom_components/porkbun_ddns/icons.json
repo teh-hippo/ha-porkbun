@@ -12,6 +12,9 @@
       },
       "next_update": {
         "default": "mdi:clock-fast"
+      },
+      "domain_expiry": {
+        "default": "mdi:calendar-clock"
       }
     },
     "binary_sensor": {
@@ -20,6 +23,9 @@
         "state": {
           "on": "mdi:alert-circle"
         }
+      },
+      "whois_privacy": {
+        "default": "mdi:shield-account"
       }
     },
     "button": {
