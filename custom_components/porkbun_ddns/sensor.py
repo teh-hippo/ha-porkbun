@@ -4,16 +4,16 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_DOMAIN, DOMAIN
-from .coordinator import DdnsData, PorkbunDdnsCoordinator, RecordState
+from .coordinator import PorkbunDdnsCoordinator, RecordState
 
 
 async def async_setup_entry(
@@ -33,13 +33,9 @@ async def async_setup_entry(
         label = f"{subdomain}.{domain_name}" if subdomain else domain_name
 
         if coordinator.ipv4_enabled:
-            entities.append(
-                DdnsIpSensor(coordinator, domain_name, subdomain, "A", label)
-            )
+            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "A", label))
         if coordinator.ipv6_enabled:
-            entities.append(
-                DdnsIpSensor(coordinator, domain_name, subdomain, "AAAA", label)
-            )
+            entities.append(DdnsIpSensor(coordinator, domain_name, subdomain, "AAAA", label))
         entities.append(DdnsLastUpdatedSensor(coordinator, domain_name, subdomain, label))
         entities.append(DdnsLastChangedSensor(coordinator, domain_name, subdomain, label))
         entities.append(DdnsNextUpdateSensor(coordinator, domain_name, subdomain, label))

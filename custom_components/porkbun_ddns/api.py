@@ -83,9 +83,7 @@ class PorkbunClient:
         data = await self._request("ping")
         return data["yourIp"]
 
-    async def get_records(
-        self, domain: str, record_type: str, subdomain: str = ""
-    ) -> list[DnsRecord]:
+    async def get_records(self, domain: str, record_type: str, subdomain: str = "") -> list[DnsRecord]:
         """Retrieve DNS records by domain, type, and optional subdomain."""
         endpoint = f"dns/retrieveByNameType/{domain}/{record_type}"
         if subdomain:

@@ -6,7 +6,6 @@ from typing import Any
 
 import aiohttp
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
@@ -58,18 +57,14 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         """Get the options flow handler."""
         return PorkbunDdnsOptionsFlow(config_entry)
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Step 1: Validate API credentials."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             try:
                 async with aiohttp.ClientSession() as session:
-                    client = PorkbunClient(
-                        session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY]
-                    )
+                    client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
                     await client.ping()
             except PorkbunAuthError:
                 errors["base"] = "invalid_auth"
@@ -83,13 +78,9 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
                 self._secret_key = user_input[CONF_SECRET_KEY]
                 return await self.async_step_domain()
 
-        return self.async_show_form(
-            step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors
-        )
+        return self.async_show_form(step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors)
 
-    async def async_step_domain(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_domain(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Step 2: Configure domain and subdomains."""
         errors: dict[str, str] = {}
 
@@ -128,28 +119,20 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
                     },
                 )
 
-        return self.async_show_form(
-            step_id="domain", data_schema=STEP_DOMAIN_SCHEMA, errors=errors
-        )
+        return self.async_show_form(step_id="domain", data_schema=STEP_DOMAIN_SCHEMA, errors=errors)
 
-    async def async_step_reauth(
-        self, entry_data: dict[str, Any]
-    ) -> FlowResult:
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> FlowResult:
         """Handle re-authentication."""
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_reauth_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Confirm re-authentication with new credentials."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             try:
                 async with aiohttp.ClientSession() as session:
-                    client = PorkbunClient(
-                        session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY]
-                    )
+                    client = PorkbunClient(session, user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
                     await client.ping()
             except PorkbunAuthError:
                 errors["base"] = "invalid_auth"
@@ -159,9 +142,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
                 LOGGER.exception("Unexpected error during re-authentication")
                 errors["base"] = "unknown"
             else:
-                entry = self.hass.config_entries.async_get_entry(
-                    self.context["entry_id"]
-                )
+                entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
                 if entry:
                     self.hass.config_entries.async_update_entry(
                         entry,
@@ -188,9 +169,7 @@ class PorkbunDdnsOptionsFlow(OptionsFlow):
         """Initialize options flow."""
         self._config_entry = config_entry
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
             subdomains = _parse_subdomains(user_input.get(CONF_SUBDOMAINS, ""))
@@ -199,9 +178,7 @@ class PorkbunDdnsOptionsFlow(OptionsFlow):
                     CONF_SUBDOMAINS: subdomains,
                     CONF_IPV4: user_input.get(CONF_IPV4, True),
                     CONF_IPV6: user_input.get(CONF_IPV6, False),
-                    CONF_UPDATE_INTERVAL: user_input.get(
-                        CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
-                    ),
+                    CONF_UPDATE_INTERVAL: user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
                 }
             )
 
@@ -218,12 +195,8 @@ class PorkbunDdnsOptionsFlow(OptionsFlow):
                         CONF_SUBDOMAINS,
                         default=", ".join(current.get(CONF_SUBDOMAINS, [])),
                     ): str,
-                    vol.Optional(
-                        CONF_IPV4, default=current.get(CONF_IPV4, True)
-                    ): bool,
-                    vol.Optional(
-                        CONF_IPV6, default=current.get(CONF_IPV6, False)
-                    ): bool,
+                    vol.Optional(CONF_IPV4, default=current.get(CONF_IPV4, True)): bool,
+                    vol.Optional(CONF_IPV6, default=current.get(CONF_IPV6, False)): bool,
                 }
             ),
         )

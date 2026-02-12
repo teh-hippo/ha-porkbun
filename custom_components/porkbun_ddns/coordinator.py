@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any
 
 import aiohttp
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import PorkbunApiError, PorkbunAuthError, PorkbunClient
@@ -97,40 +96,37 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         """Return whether IPv6 updates are enabled."""
         return self.config_entry.options.get(CONF_IPV6, False)
 
+    def _get_session(self) -> aiohttp.ClientSession:
+        """Get the aiohttp client session."""
+        return async_get_clientsession(self.hass)
+
     async def _async_update_data(self) -> DdnsData:
         """Fetch current IP and update DNS records if needed."""
         try:
-            session = aiohttp.ClientSession()
-            try:
-                client = PorkbunClient(session, self._api_key, self._secret_key)
-                data = self.data or DdnsData()
-                now = datetime.now()
+            session = self._get_session()
+            client = PorkbunClient(session, self._api_key, self._secret_key)
+            data = self.data or DdnsData()
+            now = datetime.now()
 
-                # Get current public IPs
-                if self.ipv4_enabled:
-                    data.public_ipv4 = await client.ping()
-                    LOGGER.debug("Current public IPv4: %s", data.public_ipv4)
+            # Get current public IPs
+            if self.ipv4_enabled:
+                data.public_ipv4 = await client.ping()
+                LOGGER.debug("Current public IPv4: %s", data.public_ipv4)
 
-                if self.ipv6_enabled:
-                    data.public_ipv6 = await self._get_ipv6(session)
-                    LOGGER.debug("Current public IPv6: %s", data.public_ipv6)
+            if self.ipv6_enabled:
+                data.public_ipv6 = await self._get_ipv6(session)
+                LOGGER.debug("Current public IPv6: %s", data.public_ipv6)
 
-                # Update records for root domain + each subdomain
-                targets = [""] + self.subdomains
-                for subdomain in targets:
-                    if self.ipv4_enabled and data.public_ipv4:
-                        await self._update_record(
-                            client, data, subdomain, "A", data.public_ipv4, now
-                        )
-                    if self.ipv6_enabled and data.public_ipv6:
-                        await self._update_record(
-                            client, data, subdomain, "AAAA", data.public_ipv6, now
-                        )
+            # Update records for root domain + each subdomain
+            targets = [""] + self.subdomains
+            for subdomain in targets:
+                if self.ipv4_enabled and data.public_ipv4:
+                    await self._update_record(client, data, subdomain, "A", data.public_ipv4, now)
+                if self.ipv6_enabled and data.public_ipv6:
+                    await self._update_record(client, data, subdomain, "AAAA", data.public_ipv6, now)
 
-                data.last_updated = now
-                return data
-            finally:
-                await session.close()
+            data.last_updated = now
+            return data
 
         except PorkbunAuthError as err:
             raise ConfigEntryAuthFailed(str(err)) from err
@@ -178,14 +174,10 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         # IP differs — update or create
         if existing:
             LOGGER.info("Updating %s %s record: %s → %s", label, record_type, current_ip, target_ip)
-            await client.edit_record_by_name_type(
-                self._domain, record_type, target_ip, subdomain, DEFAULT_TTL
-            )
+            await client.edit_record_by_name_type(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
         else:
             LOGGER.info("Creating %s %s record: %s", label, record_type, target_ip)
-            await client.create_record(
-                self._domain, record_type, target_ip, subdomain, DEFAULT_TTL
-            )
+            await client.create_record(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
 
         state.current_ip = target_ip
         state.last_updated = now
