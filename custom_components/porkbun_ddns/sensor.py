@@ -15,6 +15,8 @@ from . import PorkbunDdnsConfigEntry
 from .const import CONF_DOMAIN, DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
+PARALLEL_UPDATES = 1
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
