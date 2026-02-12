@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.10.0 (2026-02-12)
+
+### Features
+
+- Silver quality scale completion
+  ([`21a623d`](https://github.com/teh-hippo/ha-porkbun/commit/21a623d5f20cec177b3859cd1c6e2869c4ce2821))
+
+- Overall test coverage 84% → 96% (57 tests) - coordinator.py: 88% → 99% (IPv6, domain info errors,
+  issue registry, properties) - config_flow.py: 59% → 100% (done in Bronze) - Entity unavailable:
+  verified CoordinatorEntity handles automatically - Log-when-unavailable: verified
+  DataUpdateCoordinator handles automatically
+
+
 ## v0.9.0 (2026-02-12)
 
 ### Features
