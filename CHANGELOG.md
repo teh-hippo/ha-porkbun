@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.11.0 (2026-02-12)
+
+### Features
+
+- Gold quality scale - diagnostics, entity categories, translations, reconfigure flow, stale devices
+  ([`12fc6e5`](https://github.com/teh-hippo/ha-porkbun/commit/12fc6e5311e3c1ea5061bc2581f5d1e5c6102f41))
+
+- Add diagnostics.py with redacted API keys - Set EntityCategory.DIAGNOSTIC on IP/expiry/WHOIS
+  sensors - Set EntityCategory.CONFIG on Update DNS button - Add entity translations
+  (translation_key) for all entities - Add exception translations for auth/update failures - Add
+  async_step_reconfigure for changing domain/subdomain settings - Implement
+  async_remove_config_entry_device for stale device cleanup - Add Gold documentation: data-update
+  mechanism, use cases, known limitations, supported functions - 61 tests passing, 95% coverage
+
+
 ## v0.10.0 (2026-02-12)
 
 ### Features
