@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v0.7.0 (2026-02-12)
+
+### Features
+
+- Add PARALLEL_UPDATES = 1 to all platform files
+  ([`b0e031f`](https://github.com/teh-hippo/ha-porkbun/commit/b0e031fecde9a9034a913c4db2d9a3fc914880b5))
+
+Sets explicit parallel update limit for sensor, binary_sensor, and button platforms per HA quality
+  scale requirements.
+
+- Add strict typing with py.typed marker and mypy config
+  ([`77682ea`](https://github.com/teh-hippo/ha-porkbun/commit/77682eafb31296f5dd47bdf538635b79a42c30ac))
+
+- Create py.typed marker file - Add [tool.mypy] strict config to pyproject.toml - Fix all type
+  errors: ConfigFlowResult, DeviceInfo imports, typed dict returns, explicit type annotations - All
+  8 source files pass mypy --strict
+
+### Refactoring
+
+- Migrate to ConfigEntry.runtime_data pattern
+  ([`71a395c`](https://github.com/teh-hippo/ha-porkbun/commit/71a395cbd5250bd15a2dfe685e3425e3bc28af56))
+
+Replace hass.data[DOMAIN] with entry.runtime_data across all platform files (__init__, sensor,
+  binary_sensor, button). Use typed PorkbunDdnsConfigEntry = ConfigEntry[PorkbunDdnsCoordinator]. HA
+  auto-handles cleanup on unload.
+
+
 ## v0.6.0 (2026-02-12)
 
 ### Features
