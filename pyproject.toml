@@ -19,8 +19,8 @@ build_command = false
 commit_message = "chore(release): {version}"
 tag_format = "v{version}"
 
-[tool.semantic_release.branches.main]
-match = "main"
+[tool.semantic_release.branches.master]
+match = "master"
 prerelease = false
 
 [tool.semantic_release.changelog]
