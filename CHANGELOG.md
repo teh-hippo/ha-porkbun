@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.1 (2026-02-12)
+
+### Bug Fixes
+
+- Include manifest.json in semantic-release version tracking
+  ([`c9cee80`](https://github.com/teh-hippo/ha-porkbun/commit/c9cee807ad8a8f8bd62c47b78f1077bd97ce826b))
+
+
 ## v0.1.0 (2026-02-12)
 
 ### Bug Fixes
