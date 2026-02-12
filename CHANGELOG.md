@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.1.2 (2026-02-12)
+
+### Bug Fixes
+
+- Use timezone-aware datetimes for HA sensor compatibility
+  ([`b61354e`](https://github.com/teh-hippo/ha-porkbun/commit/b61354efa022fc54ef55e99988bf63487f56400f))
+
+### Chores
+
+- Remove uv.lock from repo
+  ([`d7c3ae1`](https://github.com/teh-hippo/ha-porkbun/commit/d7c3ae1a7208b47c6c2bb1458fbfcb4fc71eeaa7))
+
+
 ## v0.1.1 (2026-02-12)
 
 ### Bug Fixes
