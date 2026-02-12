@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.1.3 (2026-02-12)
+
+### Bug Fixes
+
+- Use always_update=True and remove unpersistable last_changed
+  ([`4c77aaf`](https://github.com/teh-hippo/ha-porkbun/commit/4c77aaf1347285d842cb219e85dd2db185cdce4c))
+
+
 ## v0.1.2 (2026-02-12)
 
 ### Bug Fixes
