@@ -36,7 +36,6 @@ class RecordState:
 
     current_ip: str | None = None
     last_updated: datetime | None = None
-    last_changed: datetime | None = None
 
 
 @dataclass
@@ -72,7 +71,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             name=f"Porkbun DDNS ({self._domain})",
             config_entry=config_entry,
             update_interval=timedelta(seconds=interval),
-            always_update=False,
+            always_update=True,
         )
         self.data = DdnsData()
 
@@ -181,7 +180,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
 
         state.current_ip = target_ip
         state.last_updated = now
-        state.last_changed = now
         data.records[key] = state
 
     async def _get_ipv6(self, session: aiohttp.ClientSession) -> str | None:
