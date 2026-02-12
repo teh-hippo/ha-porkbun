@@ -15,7 +15,7 @@ version_toml = ["pyproject.toml:project.version"]
 version_variables = [
     "custom_components/porkbun_ddns/const.py:__version__",
 ]
-build_command = false
+build_command = ""
 commit_message = "chore(release): {version}"
 tag_format = "v{version}"
 
@@ -23,7 +23,7 @@ tag_format = "v{version}"
 match = "master"
 prerelease = false
 
-[tool.semantic_release.changelog]
+[tool.semantic_release.changelog.default_templates]
 changelog_file = "CHANGELOG.md"
 
 [tool.semantic_release.remote]
