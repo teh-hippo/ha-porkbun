@@ -11,7 +11,7 @@ from .coordinator import PorkbunDdnsCoordinator
 
 PLATFORMS = ["binary_sensor", "button", "sensor"]
 
-type PorkbunDdnsConfigEntry = ConfigEntry
+type PorkbunDdnsConfigEntry = ConfigEntry[PorkbunDdnsCoordinator]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) -> bool:
@@ -20,7 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) 
 
     await coordinator.async_config_entry_first_refresh()
 
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -35,9 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) 
 
 async def async_unload_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) -> bool:
     """Unload a config entry."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id, None)
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) -> None:

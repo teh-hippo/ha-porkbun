@@ -19,6 +19,7 @@ from custom_components.porkbun_ddns.const import (
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
+from custom_components.porkbun_ddns.coordinator import PorkbunDdnsCoordinator
 
 from .conftest import MOCK_API_KEY, MOCK_DOMAIN, MOCK_SECRET_KEY
 
@@ -57,7 +58,7 @@ async def test_setup_entry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) 
     await hass.async_block_till_done()
 
     assert result is True
-    assert entry.entry_id in hass.data[DOMAIN]
+    assert isinstance(entry.runtime_data, PorkbunDdnsCoordinator)
 
 
 async def test_unload_entry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
@@ -69,4 +70,3 @@ async def test_unload_entry(hass: HomeAssistant, mock_porkbun_client: AsyncMock)
 
     result = await hass.config_entries.async_unload(entry.entry_id)
     assert result is True
-    assert entry.entry_id not in hass.data[DOMAIN]

@@ -57,8 +57,6 @@ class DdnsData:
 class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     """Coordinator that manages DDNS updates for a single domain."""
 
-    config_entry: ConfigEntry
-
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
         self._domain = config_entry.data[CONF_DOMAIN]

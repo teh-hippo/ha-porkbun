@@ -5,24 +5,24 @@ from __future__ import annotations
 from datetime import datetime
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import PorkbunDdnsConfigEntry
 from .const import CONF_DOMAIN, DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: PorkbunDdnsConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Porkbun DDNS sensors from a config entry."""
-    coordinator: PorkbunDdnsCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     domain_name = entry.data[CONF_DOMAIN]
 
     entities: list[SensorEntity] = []
