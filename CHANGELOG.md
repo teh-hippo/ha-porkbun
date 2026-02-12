@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.2.0 (2026-02-12)
+
+### Features
+
+- Restructure sensors - device-level timing, cleaner naming, drop last_changed
+  ([`0a91d4e`](https://github.com/teh-hippo/ha-porkbun/commit/0a91d4ef428787a92a933abb8a0316ec040058a4))
+
+- Last Updated and Next Update are now device-level (one per TLD) - IP sensors use clean names:
+  'IPv4' for root, 'subdomain IPv4' for subs - Removed Last IP Change sensor (can't persist across
+  restarts) - Enhanced DeviceInfo: model='DDNS', configuration_url to Porkbun - Device name is now
+  just the domain (e.g., 'xaz.lol')
+
+
 ## v0.1.3 (2026-02-12)
 
 ### Bug Fixes
