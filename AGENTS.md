@@ -15,24 +15,17 @@ All 61 tests should pass. Use `ruff` for linting and formatting.
 
 ### Release Workflow (`release.yml`)
 
-Uses `python-semantic-release` to version-bump, commit, tag, and publish.
+Uses `python-semantic-release` to determine the next version, create a git tag,
+and publish a GitHub Release — all without pushing commits to `master`.
 
-**Known issue:** The `master` branch has protection requiring the `Validate` status
-check. `GITHUB_TOKEN` cannot bypass this, so semantic-release fails to push the
-version-bump commit.
+The workflow uses `commit: false`, `push: false`, and `changelog: false` to avoid
+needing to push to the protected `master` branch. This means:
 
-**Fix:** Create a fine-grained PAT with `contents: write` scope on this repo and
-add it as a repository secret named `RELEASE_TOKEN`. The workflow already
-references `secrets.RELEASE_TOKEN` with a fallback to `GITHUB_TOKEN`. Since
-`enforce_admins` is disabled, the PAT will bypass the required status check.
-
-To create the PAT: GitHub → Settings → Developer settings → Fine-grained tokens →
-Generate new token → Select `teh-hippo/ha-porkbun` → Repository permissions →
-Contents: Read and write. Then add it as a repo secret:
-
-```bash
-gh secret set RELEASE_TOKEN --repo teh-hippo/ha-porkbun
-```
+- Version numbers in source files (`pyproject.toml`, `const.py`, `manifest.json`)
+  are **not** auto-bumped by CI. They are cosmetic — HACS uses the git tag.
+- The `CHANGELOG.md` is not auto-updated by CI.
+- If you want source versions to match the release, bump them manually.
+- No PAT or deploy key is required; the default `GITHUB_TOKEN` is sufficient.
 
 ### Dependabot Auto-Merge (`dependabot-automerge.yml`)
 
