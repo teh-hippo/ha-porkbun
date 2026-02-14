@@ -112,7 +112,8 @@
     },
     "binary_sensor": {
       "dns_status": { "name": "DNS Status" },
-      "whois_privacy": { "name": "WHOIS Privacy" }
+      "whois_privacy": { "name": "WHOIS Privacy" },
+      "record_status": { "name": "{label} {type}" }
     },
     "button": {
       "update_dns": { "name": "Update DNS" }

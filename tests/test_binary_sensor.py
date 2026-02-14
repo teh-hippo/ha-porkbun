@@ -171,3 +171,49 @@ async def test_health_sensor_extra_attributes_with_failures(
     state = hass.states.get(_get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_health"))
     assert state is not None
     assert "failed_records" in state.attributes
+
+
+async def test_record_sensor_created_per_subdomain(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test per-record binary sensors are created for root + each subdomain."""
+    entry = _make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Root domain (@_A) and subdomain (www_A)
+    root_id = _get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_@_A")
+    www_id = _get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_www_A")
+
+    root_state = hass.states.get(root_id)
+    assert root_state is not None
+    assert root_state.state == "off"  # healthy
+    assert root_state.attributes["current_ip"] is not None
+
+    www_state = hass.states.get(www_id)
+    assert www_state is not None
+    assert www_state.state == "off"
+
+
+async def test_record_sensor_shows_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test per-record sensor shows problem state on failure."""
+    call_count = 0
+
+    async def _get_records_with_failure(domain, record_type, subdomain=""):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 2:
+            raise PorkbunApiError("DNS error")
+        return []
+
+    mock_porkbun_client.get_records.side_effect = _get_records_with_failure
+
+    entry = _make_entry(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # The second record (www_A) should show a problem
+    www_id = _get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_www_A")
+    www_state = hass.states.get(www_id)
+    assert www_state is not None
+    assert www_state.state == "on"  # problem
+    assert www_state.attributes["error"] == "DNS error"
