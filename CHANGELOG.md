@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## v0.11.2 (2026-02-14)
+
+### Bug Fixes
+
+- Use RELEASE_TOKEN to bypass branch protection in release workflow
+  ([`fb199aa`](https://github.com/teh-hippo/ha-porkbun/commit/fb199aa))
+
+- Add AGENTS.md documenting CI/CD setup, known issues, and conventions
+
+- Create missing `major-update` label for dependabot auto-merge workflow
+
+
 ## v0.11.0 (2026-02-12)
 
 ### Features
