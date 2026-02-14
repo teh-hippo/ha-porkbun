@@ -48,14 +48,13 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
     ) -> None:
         """Initialize the health sensor."""
         super().__init__(coordinator)
-        self._domain_name = domain_name
         self._attr_unique_id = f"{domain_name}_health"
         self._attr_device_info = device_info(domain_name)
 
     @property
     def is_on(self) -> bool | None:
         """Return True if there IS a problem (problem class is inverted)."""
-        if not self.coordinator.data or not self.coordinator.data.records:
+        if not self.coordinator.data.records:
             return None
         return not self.coordinator.all_ok
 
@@ -67,8 +66,7 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
         ok = coord.ok_count
         attrs: dict[str, str | list[str]] = {"summary": f"{ok}/{total} OK"}
 
-        # List any failed records
-        if coord.data and coord.data.records:
+        if coord.data.records:
             failed = [k for k, v in coord.data.records.items() if not v.ok]
             if failed:
                 attrs["failed_records"] = failed
@@ -81,7 +79,6 @@ class DdnsWhoisPrivacySensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySe
 
     _attr_has_entity_name = True
     _attr_translation_key = "whois_privacy"
-    _attr_icon = "mdi:shield-account"
     _attr_entity_registry_enabled_default = False
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
@@ -98,6 +95,6 @@ class DdnsWhoisPrivacySensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySe
     @property
     def is_on(self) -> bool | None:
         """Return True if WHOIS privacy is enabled."""
-        if not self.coordinator.data or not self.coordinator.data.domain_info:
+        if not self.coordinator.data.domain_info:
             return None
         return self.coordinator.data.domain_info.whois_privacy

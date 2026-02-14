@@ -31,7 +31,6 @@ class DdnsForceUpdateButton(CoordinatorEntity[PorkbunDdnsCoordinator], ButtonEnt
 
     _attr_has_entity_name = True
     _attr_translation_key = "update_dns"
-    _attr_icon = "mdi:refresh"
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(

@@ -27,8 +27,6 @@ class DnsRecord:
     record_type: str
     content: str
     ttl: str
-    prio: str
-    notes: str
 
 
 @dataclass
@@ -109,8 +107,6 @@ class PorkbunClient:
                 record_type=r["type"],
                 content=r["content"],
                 ttl=r["ttl"],
-                prio=r.get("prio", "0"),
-                notes=r.get("notes", ""),
             )
             for r in data.get("records", [])
         ]

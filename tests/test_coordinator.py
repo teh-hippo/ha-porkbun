@@ -77,7 +77,7 @@ async def test_coordinator_creates_record_if_missing(hass: HomeAssistant, mock_p
 async def test_coordinator_skips_when_ip_matches(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator skips update when IP already matches."""
     mock_porkbun_client.get_records.return_value = [
-        DnsRecord(id="123", name="example.com", record_type="A", content=MOCK_IPV4, ttl="600", prio="0", notes="")
+        DnsRecord(id="123", name="example.com", record_type="A", content=MOCK_IPV4, ttl="600")
     ]
     entry = _make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
@@ -92,7 +92,7 @@ async def test_coordinator_skips_when_ip_matches(hass: HomeAssistant, mock_porkb
 async def test_coordinator_updates_when_ip_differs(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator updates record when IP has changed."""
     mock_porkbun_client.get_records.return_value = [
-        DnsRecord(id="123", name="example.com", record_type="A", content="9.9.9.9", ttl="600", prio="0", notes="")
+        DnsRecord(id="123", name="example.com", record_type="A", content="9.9.9.9", ttl="600")
     ]
     entry = _make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)

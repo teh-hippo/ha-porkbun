@@ -21,16 +21,15 @@ async def async_get_config_entry_diagnostics(
     data = coordinator.data
 
     records: dict[str, dict[str, Any]] = {}
-    if data and data.records:
-        for key, state in data.records.items():
-            records[key] = {
-                "current_ip": state.current_ip,
-                "ok": state.ok,
-                "error": state.error,
-            }
+    for key, state in data.records.items():
+        records[key] = {
+            "current_ip": state.current_ip,
+            "ok": state.ok,
+            "error": state.error,
+        }
 
     domain_info: dict[str, Any] | None = None
-    if data and data.domain_info:
+    if data.domain_info:
         domain_info = {
             "domain": data.domain_info.domain,
             "status": data.domain_info.status,
@@ -49,9 +48,9 @@ async def async_get_config_entry_diagnostics(
             "record_count": coordinator.record_count,
             "ok_count": coordinator.ok_count,
             "all_ok": coordinator.all_ok,
-            "public_ipv4": data.public_ipv4 if data else None,
-            "public_ipv6": data.public_ipv6 if data else None,
-            "last_updated": str(data.last_updated) if data and data.last_updated else None,
+            "public_ipv4": data.public_ipv4,
+            "public_ipv6": data.public_ipv6,
+            "last_updated": str(data.last_updated) if data.last_updated else None,
             "records": records,
             "domain_info": domain_info,
         },

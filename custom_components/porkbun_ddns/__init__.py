@@ -8,7 +8,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from .const import CONF_DOMAIN, DOMAIN, LOGGER
+from .const import CONF_DOMAIN, DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
 PLATFORMS = ["binary_sensor", "button", "sensor"]
@@ -43,7 +43,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) 
     # Clear any previous repair issues for this domain
     ir.async_delete_issue(hass, DOMAIN, f"api_access_{entry.data[CONF_DOMAIN]}")
 
-    LOGGER.debug("Porkbun DDNS set up for %s", entry.data[CONF_DOMAIN])
     return True
 
 

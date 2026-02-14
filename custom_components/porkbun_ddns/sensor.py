@@ -44,7 +44,6 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
     """Device-level sensor showing the current public IP address."""
 
     _attr_has_entity_name = True
-    _attr_icon = "mdi:ip-network"
     _attr_entity_registry_enabled_default = False
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
@@ -66,8 +65,6 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the current public IP address."""
-        if not self.coordinator.data:
-            return None
         if self._record_type == "A":
             return self.coordinator.data.public_ipv4
         return self.coordinator.data.public_ipv6
@@ -84,7 +81,6 @@ class DdnsLastUpdatedSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnt
 
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-    _attr_icon = "mdi:clock-check-outline"
 
     def __init__(
         self,
@@ -100,8 +96,6 @@ class DdnsLastUpdatedSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnt
     @property
     def native_value(self) -> datetime | None:
         """Return the last updated timestamp."""
-        if not self.coordinator.data:
-            return None
         return self.coordinator.data.last_updated
 
 
@@ -110,7 +104,6 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
 
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-    _attr_icon = "mdi:clock-fast"
 
     def __init__(
         self,
@@ -126,7 +119,7 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
     @property
     def native_value(self) -> datetime | None:
         """Return the next scheduled update timestamp."""
-        if not self.coordinator.data or not self.coordinator.data.last_updated:
+        if not self.coordinator.data.last_updated:
             return None
         interval = self.coordinator.update_interval
         if interval is None:
@@ -139,7 +132,6 @@ class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEn
 
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
-    _attr_icon = "mdi:calendar-clock"
     _attr_entity_registry_enabled_default = False
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
@@ -157,7 +149,7 @@ class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEn
     @property
     def native_value(self) -> datetime | None:
         """Return the domain expiry date as a UTC timestamp."""
-        if not self.coordinator.data or not self.coordinator.data.domain_info:
+        if not self.coordinator.data.domain_info:
             return None
         raw = self.coordinator.data.domain_info.expire_date
         if not raw:

@@ -56,7 +56,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> PorkbunDdnsOptionsFlow:
         """Get the options flow handler."""
-        return PorkbunDdnsOptionsFlow(config_entry)
+        return PorkbunDdnsOptionsFlow()
 
     async def _try_api(self, coro: Coroutine[Any, Any, Any], auth_error: str = "invalid_auth") -> str | None:
         """Run an API call and return an error key, or None on success."""
@@ -202,10 +202,6 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 class PorkbunDdnsOptionsFlow(OptionsFlow):
     """Handle options for Porkbun DDNS."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow."""
-        self._config_entry = config_entry
-
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
@@ -219,7 +215,7 @@ class PorkbunDdnsOptionsFlow(OptionsFlow):
                 }
             )
 
-        current = self._config_entry.options
+        current = self.config_entry.options
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(

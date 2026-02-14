@@ -35,7 +35,6 @@ class RecordState:
     """State for a single DNS record (subdomain + type)."""
 
     current_ip: str | None = None
-    last_updated: datetime | None = None
     ok: bool = True
     error: str | None = None
 
@@ -81,39 +80,31 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     @property
     def domain(self) -> str:
         """Return the domain name."""
-        domain: str = self._domain
-        return domain
+        return self._domain
 
     @property
     def subdomains(self) -> list[str]:
         """Return configured subdomains."""
-        subs: list[str] = self.config_entry.options.get(CONF_SUBDOMAINS, [])
-        return subs
+        return self.config_entry.options.get(CONF_SUBDOMAINS, [])  # type: ignore[return-value]
 
     @property
     def ipv4_enabled(self) -> bool:
         """Return whether IPv4 updates are enabled."""
-        enabled: bool = self.config_entry.options.get(CONF_IPV4, True)
-        return enabled
+        return self.config_entry.options.get(CONF_IPV4, True)  # type: ignore[return-value]
 
     @property
     def ipv6_enabled(self) -> bool:
         """Return whether IPv6 updates are enabled."""
-        enabled: bool = self.config_entry.options.get(CONF_IPV6, False)
-        return enabled
+        return self.config_entry.options.get(CONF_IPV6, False)  # type: ignore[return-value]
 
     @property
     def record_count(self) -> int:
         """Return total number of tracked records."""
-        if not self.data or not self.data.records:
-            return 0
         return len(self.data.records)
 
     @property
     def ok_count(self) -> int:
         """Return number of records that updated successfully."""
-        if not self.data or not self.data.records:
-            return 0
         return sum(1 for r in self.data.records.values() if r.ok)
 
     @property
@@ -148,7 +139,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                         subdomain,
                         "A",
                         data.public_ipv4,
-                        now,
                     )
                 if self.ipv6_enabled and data.public_ipv6:
                     await self._update_record(
@@ -157,7 +147,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                         subdomain,
                         "AAAA",
                         data.public_ipv6,
-                        now,
                     )
 
             data.last_updated = now
@@ -204,7 +193,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         subdomain: str,
         record_type: str,
         target_ip: str,
-        now: datetime,
     ) -> None:
         """Check and update a single DNS record if the IP has changed."""
         key = data.record_key(subdomain, record_type)
@@ -218,7 +206,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             if current_ip == target_ip:
                 LOGGER.debug("%s %s record already correct (%s)", label, record_type, target_ip)
                 state.current_ip = current_ip
-                state.last_updated = now
                 state.ok = True
                 state.error = None
                 data.records[key] = state
@@ -233,7 +220,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                 await client.create_record(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
 
             state.current_ip = target_ip
-            state.last_updated = now
             state.ok = True
             state.error = None
         except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:

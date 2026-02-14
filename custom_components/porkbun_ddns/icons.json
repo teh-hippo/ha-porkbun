@@ -1,10 +1,10 @@
 {
   "entity": {
     "sensor": {
-      "ipv4": {
+      "public_ipv4": {
         "default": "mdi:ip-network"
       },
-      "ipv6": {
+      "public_ipv6": {
         "default": "mdi:ip-network"
       },
       "last_updated": {
@@ -18,7 +18,7 @@
       }
     },
     "binary_sensor": {
-      "health": {
+      "dns_status": {
         "default": "mdi:check-circle",
         "state": {
           "on": "mdi:alert-circle"
@@ -29,7 +29,7 @@
       }
     },
     "button": {
-      "force_update": {
+      "update_dns": {
         "default": "mdi:refresh"
       }
     }
