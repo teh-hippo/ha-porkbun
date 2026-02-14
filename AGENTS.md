@@ -9,7 +9,7 @@ ruff check .
 ruff format --check .
 ```
 
-All 61 tests should pass. Use `ruff` for linting and formatting.
+All 63 tests should pass. Use `ruff` for linting and formatting.
 
 ## CI/CD Workflows
 
@@ -18,14 +18,16 @@ All 61 tests should pass. Use `ruff` for linting and formatting.
 Uses `python-semantic-release` to determine the next version, create a git tag,
 and publish a GitHub Release — all without pushing commits to `master`.
 
-The workflow uses `commit: false`, `push: false`, and `changelog: false` to avoid
-needing to push to the protected `master` branch. This means:
+The workflow uses `commit: false` and `changelog: false` while allowing `push: true`
+(the default) so tags are pushed to the remote. This means:
 
+- Tags are created and pushed automatically — triggering the GitHub Release publish step.
 - Version numbers in source files (`pyproject.toml`, `const.py`, `manifest.json`)
   are **not** auto-bumped by CI. They are cosmetic — HACS uses the git tag.
 - The `CHANGELOG.md` is not auto-updated by CI.
 - If you want source versions to match the release, bump them manually.
 - No PAT or deploy key is required; the default `GITHUB_TOKEN` is sufficient.
+- Tag pushes bypass branch protection's status check requirement.
 
 ### Dependabot Auto-Merge (`dependabot-automerge.yml`)
 
