@@ -30,7 +30,7 @@ class DdnsForceUpdateButton(CoordinatorEntity[PorkbunDdnsCoordinator], ButtonEnt
     """Button to trigger an immediate DDNS update."""
 
     _attr_has_entity_name = True
-    _attr_translation_key = "update_dns"
+    _attr_translation_key = "refresh_ddns_records"
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(

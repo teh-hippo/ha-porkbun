@@ -82,3 +82,20 @@ async def test_button_press_triggers_refresh(hass: HomeAssistant, mock_porkbun_c
 
     # Ping is called on setup + once on button press
     assert mock_porkbun_client.ping.call_count >= 2
+
+
+async def test_button_has_clear_name(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test force update button has a descriptive user-facing name."""
+    entry = _make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    ent_reg = er.async_get(hass)
+    button_id = ent_reg.async_get_entity_id("button", DOMAIN, f"{MOCK_DOMAIN}_force_update")
+    assert button_id is not None
+
+    state = hass.states.get(button_id)
+    assert state is not None
+    assert state.name is not None
+    assert "Refresh DDNS Records" in state.name

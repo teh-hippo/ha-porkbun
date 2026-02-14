@@ -57,5 +57,37 @@
       "title": "API access not enabled for {domain}",
       "description": "The Porkbun API returned an error for **{domain}**. Please ensure API access is enabled in your Porkbun domain settings.\n\nWithout API access enabled, DDNS updates cannot be performed."
     }
+  },
+  "entity": {
+    "sensor": {
+      "public_ipv4": {
+        "name": "Public IPv4"
+      },
+      "public_ipv6": {
+        "name": "Public IPv6"
+      },
+      "last_updated": {
+        "name": "Last Updated"
+      },
+      "next_update": {
+        "name": "Next Update"
+      },
+      "domain_expiry": {
+        "name": "Domain Expiry"
+      }
+    },
+    "binary_sensor": {
+      "dns_status": {
+        "name": "DNS Status"
+      },
+      "whois_privacy": {
+        "name": "WHOIS Privacy"
+      }
+    },
+    "button": {
+      "refresh_ddns_records": {
+        "name": "Refresh DDNS Records"
+      }
+    }
   }
 }
