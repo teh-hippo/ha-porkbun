@@ -73,6 +73,7 @@ Each domain creates one device with these sensors:
 | Sensor | Description | Default |
 |---|---|---|
 | **DNS Status** | Binary sensor — healthy (✅) or problem detected | Enabled |
+| **Managed Subdomains** | Sensor listing root + configured subdomains for this domain | Enabled |
 | **Last Updated** | When the integration last checked DNS records | Enabled |
 | **Next Update** | When the next scheduled check will occur | Enabled |
 | **Public IPv4** | Your current public IPv4 address | Disabled |
@@ -80,7 +81,7 @@ Each domain creates one device with these sensors:
 | **Domain Expiry** | When the domain registration expires | Disabled |
 | **WHOIS Privacy** | Whether WHOIS privacy is enabled | Disabled |
 
-> All subdomains under the same domain share the same public IP — that's how DDNS works. The managed records (root domain + all subdomains) are listed as an attribute on the IP sensor.
+> All subdomains under the same domain share the same public IP — that's how DDNS works. The managed targets are visible on the **Managed Subdomains** sensor (and still exposed as attributes on the IP sensor).
 
 ## Actions
 

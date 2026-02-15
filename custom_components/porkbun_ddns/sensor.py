@@ -33,6 +33,7 @@ async def async_setup_entry(
         entities.append(DdnsIpSensor(coordinator, domain_name, "A"))
     if coordinator.ipv6_enabled:
         entities.append(DdnsIpSensor(coordinator, domain_name, "AAAA"))
+    entities.append(DdnsManagedSubdomainsSensor(coordinator, domain_name))
     entities.append(DdnsLastUpdatedSensor(coordinator, domain_name))
     entities.append(DdnsNextUpdateSensor(coordinator, domain_name))
     entities.append(DdnsDomainExpirySensor(coordinator, domain_name))
@@ -72,6 +73,35 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, list[str]]:
         """Return managed DNS records as attributes."""
+        targets = [""] + self.coordinator.subdomains
+        return {"managed_records": [f"{sub}.{self._domain_name}" if sub else self._domain_name for sub in targets]}
+
+
+class DdnsManagedSubdomainsSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
+    """Sensor that surfaces managed subdomains for this domain."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "managed_subdomains"
+
+    def __init__(
+        self,
+        coordinator: PorkbunDdnsCoordinator,
+        domain_name: str,
+    ) -> None:
+        """Initialize the managed subdomains sensor."""
+        super().__init__(coordinator)
+        self._domain_name = domain_name
+        self._attr_unique_id = f"{domain_name}_managed_subdomains"
+        self._attr_device_info = device_info(domain_name)
+
+    @property
+    def native_value(self) -> str:
+        """Return a concise list of managed subdomains."""
+        return ", ".join(["@"] + self.coordinator.subdomains)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, list[str]]:
+        """Return managed records with full hostnames."""
         targets = [""] + self.coordinator.subdomains
         return {"managed_records": [f"{sub}.{self._domain_name}" if sub else self._domain_name for sub in targets]}
 

@@ -60,7 +60,7 @@ def _make_entry(hass: HomeAssistant, *, ipv6: bool = False, subdomains: list[str
 
 
 async def test_sensors_created(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test that device-level sensors are created (2 active: last updated, next update)."""
+    """Test that device-level sensors are created (3 active by default)."""
     entry = _make_entry(hass)
 
     await hass.config_entries.async_setup(entry.entry_id)
@@ -70,8 +70,53 @@ async def test_sensors_created(hass: HomeAssistant, mock_porkbun_client: AsyncMo
     sensor_ids = [
         eid for eid in states if eid.startswith("sensor.") and ("porkbun" in eid.lower() or "example" in eid.lower())
     ]
-    # IP sensor is disabled by default, so only Last Updated + Next Update are active
-    assert len(sensor_ids) == 2, f"Expected 2 sensors, got {len(sensor_ids)}: {sensor_ids}"
+    # IP + domain expiry sensors are disabled by default.
+    assert len(sensor_ids) == 3, f"Expected 3 sensors, got {len(sensor_ids)}: {sensor_ids}"
+
+
+async def test_managed_subdomains_sensor_value_and_attributes(
+    hass: HomeAssistant, mock_porkbun_client: AsyncMock
+) -> None:
+    """Test managed subdomains sensor shows root + configured subdomains."""
+    entry = _make_entry(hass, subdomains=["www", "vpn"])
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get(_get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_managed_subdomains"))
+    assert state is not None
+    assert state.state == "@, www, vpn"
+    assert state.attributes["managed_records"] == [
+        MOCK_DOMAIN,
+        f"www.{MOCK_DOMAIN}",
+        f"vpn.{MOCK_DOMAIN}",
+    ]
+
+
+async def test_managed_subdomains_sensor_updates_after_reload(
+    hass: HomeAssistant, mock_porkbun_client: AsyncMock
+) -> None:
+    """Test managed subdomains sensor reflects updated options after reload."""
+    entry = _make_entry(hass, subdomains=["www"])
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    entity_id = _get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_managed_subdomains")
+    state = hass.states.get(entity_id)
+    assert state is not None
+    assert state.state == "@, www"
+
+    hass.config_entries.async_update_entry(
+        entry,
+        options={**entry.options, CONF_SUBDOMAINS: ["www", "vpn"]},
+    )
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    updated_state = hass.states.get(entity_id)
+    assert updated_state is not None
+    assert updated_state.state == "@, www, vpn"
 
 
 async def test_ip_sensor_disabled_by_default(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
