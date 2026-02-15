@@ -26,16 +26,10 @@
       },
       "whois_privacy": {
         "default": "mdi:shield-account"
-      },
-      "record_status": {
-        "default": "mdi:dns-outline",
-        "state": {
-          "on": "mdi:alert-circle"
-        }
       }
     },
     "button": {
-      "update_dns": {
+      "refresh_ddns_records": {
         "default": "mdi:refresh"
       }
     }

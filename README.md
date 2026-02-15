@@ -86,9 +86,9 @@ Each domain creates one device with these sensors:
 
 | Entity | Type | Description |
 |---|---|---|
-| **Update DNS** | Button | Triggers an immediate DNS update check, bypassing the polling interval. Useful after changing your network or to verify records are current. |
+| **Refresh DDNS Records** | Button | Triggers an immediate DNS update check, bypassing the polling interval. Useful after changing your network or to verify records are current. |
 
-To trigger from an automation, use the `button.press` service targeting the "Update DNS" button entity.
+To trigger from an automation, use the `button.press` service targeting the "Refresh DDNS Records" button entity.
 
 ## Removing the Integration
 
@@ -109,7 +109,7 @@ Each update cycle:
 3. Compares the current IP with the DNS record — updates only when different
 4. Fetches domain registration info (expiry date, WHOIS privacy status)
 
-Use the **Update DNS** button entity to trigger an immediate check outside the polling schedule.
+Use the **Refresh DDNS Records** button entity to trigger an immediate check outside the polling schedule.
 
 ## Use Cases
 
@@ -137,7 +137,7 @@ Use the **Update DNS** button entity to trigger an immediate check outside the p
 | `sensor` | Domain Expiry | Domain registration expiry date (diagnostic, disabled by default) |
 | `binary_sensor` | DNS Status | Healthy or problem detected across all managed records |
 | `binary_sensor` | WHOIS Privacy | Whether WHOIS privacy is enabled (diagnostic, disabled by default) |
-| `button` | Update DNS | Force an immediate DNS update check |
+| `button` | Refresh DDNS Records | Force an immediate DNS update check |
 | `diagnostics` | Config Entry | Download diagnostics with redacted API keys |
 
 ## Troubleshooting
