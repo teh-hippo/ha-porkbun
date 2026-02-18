@@ -1,0 +1,414 @@
+# serializer version: 1
+# name: test_snapshot_binary_sensor_platform[binary_sensor.example_com_dns_status-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'binary_sensor',
+    'entity_category': None,
+    'entity_id': 'binary_sensor.example_com_dns_status',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'DNS Status',
+    'options': dict({
+    }),
+    'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
+    'original_icon': None,
+    'original_name': 'DNS Status',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'dns_status',
+    'unique_id': 'example.com_health',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_binary_sensor_platform[binary_sensor.example_com_dns_status-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'problem',
+      'friendly_name': 'example.com DNS Status',
+      'managed_subdomains': list([
+        '@',
+        'www',
+      ]),
+      'record_status': list([
+        '@_A: OK',
+        'www_A: OK',
+      ]),
+      'summary': '2/2 OK',
+    }),
+    'context': <ANY>,
+    'entity_id': 'binary_sensor.example_com_dns_status',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'off',
+  })
+# ---
+# name: test_snapshot_binary_sensor_platform[binary_sensor.example_com_whois_privacy-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'binary_sensor',
+    'entity_category': <EntityCategory.DIAGNOSTIC: 'diagnostic'>,
+    'entity_id': 'binary_sensor.example_com_whois_privacy',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'WHOIS Privacy',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': None,
+    'original_name': 'WHOIS Privacy',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'whois_privacy',
+    'unique_id': 'example.com_whois_privacy',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_binary_sensor_platform[binary_sensor.example_com_whois_privacy-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'friendly_name': 'example.com WHOIS Privacy',
+    }),
+    'context': <ANY>,
+    'entity_id': 'binary_sensor.example_com_whois_privacy',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unknown',
+  })
+# ---
+# name: test_snapshot_button_platform[button.example_com_refresh_ddns_records-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'button',
+    'entity_category': <EntityCategory.CONFIG: 'config'>,
+    'entity_id': 'button.example_com_refresh_ddns_records',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Refresh DDNS Records',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': None,
+    'original_name': 'Refresh DDNS Records',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'refresh_ddns_records',
+    'unique_id': 'example.com_force_update',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_button_platform[button.example_com_refresh_ddns_records-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'friendly_name': 'example.com Refresh DDNS Records',
+    }),
+    'context': <ANY>,
+    'entity_id': 'button.example_com_refresh_ddns_records',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unknown',
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_domain_expiry-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': <EntityCategory.DIAGNOSTIC: 'diagnostic'>,
+    'entity_id': 'sensor.example_com_domain_expiry',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Domain Expiry',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
+    'original_icon': None,
+    'original_name': 'Domain Expiry',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'domain_expiry',
+    'unique_id': 'example.com_domain_expiry',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_domain_expiry-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'timestamp',
+      'friendly_name': 'example.com Domain Expiry',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.example_com_domain_expiry',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': 'unknown',
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_last_updated-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.example_com_last_updated',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Last Updated',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
+    'original_icon': None,
+    'original_name': 'Last Updated',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'last_updated',
+    'unique_id': 'example.com_last_updated',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_last_updated-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'timestamp',
+      'friendly_name': 'example.com Last Updated',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.example_com_last_updated',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '2026-02-18T12:00:00+00:00',
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_managed_subdomains-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.example_com_managed_subdomains',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Managed Subdomains',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': None,
+    'original_name': 'Managed Subdomains',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'managed_subdomains',
+    'unique_id': 'example.com_managed_subdomains',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_managed_subdomains-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'friendly_name': 'example.com Managed Subdomains',
+      'managed_records': list([
+        'example.com',
+        'www.example.com',
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.example_com_managed_subdomains',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '@, www',
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_next_update-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': None,
+    'entity_id': 'sensor.example_com_next_update',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Next Update',
+    'options': dict({
+    }),
+    'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
+    'original_icon': None,
+    'original_name': 'Next Update',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'next_update',
+    'unique_id': 'example.com_next_update',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_next_update-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'device_class': 'timestamp',
+      'friendly_name': 'example.com Next Update',
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.example_com_next_update',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '2026-02-18T12:05:00+00:00',
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_public_ipv4-entry]
+  EntityRegistryEntrySnapshot({
+    'aliases': set({
+    }),
+    'area_id': None,
+    'capabilities': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'device_class': None,
+    'device_id': <ANY>,
+    'disabled_by': None,
+    'domain': 'sensor',
+    'entity_category': <EntityCategory.DIAGNOSTIC: 'diagnostic'>,
+    'entity_id': 'sensor.example_com_public_ipv4',
+    'has_entity_name': True,
+    'hidden_by': None,
+    'icon': None,
+    'id': <ANY>,
+    'labels': set({
+    }),
+    'name': None,
+    'object_id_base': 'Public IPv4',
+    'options': dict({
+    }),
+    'original_device_class': None,
+    'original_icon': None,
+    'original_name': 'Public IPv4',
+    'platform': 'porkbun_ddns',
+    'previous_unique_id': None,
+    'suggested_object_id': None,
+    'supported_features': 0,
+    'translation_key': 'public_ipv4',
+    'unique_id': 'example.com_A_ip',
+    'unit_of_measurement': None,
+  })
+# ---
+# name: test_snapshot_sensor_platform[sensor.example_com_public_ipv4-state]
+  StateSnapshot({
+    'attributes': ReadOnlyDict({
+      'friendly_name': 'example.com Public IPv4',
+      'managed_records': list([
+        'example.com',
+        'www.example.com',
+      ]),
+    }),
+    'context': <ANY>,
+    'entity_id': 'sensor.example_com_public_ipv4',
+    'last_changed': <ANY>,
+    'last_reported': <ANY>,
+    'last_updated': <ANY>,
+    'state': '1.2.3.4',
+  })
+# ---

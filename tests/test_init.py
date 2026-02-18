@@ -35,9 +35,7 @@ async def test_setup_entry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) 
     assert isinstance(entry.runtime_data, PorkbunDdnsCoordinator)
 
 
-async def test_setup_entry_auth_failure_sets_setup_error(
-    hass: HomeAssistant, mock_porkbun_client: AsyncMock
-) -> None:
+async def test_setup_entry_auth_failure_sets_setup_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test auth failures are surfaced as SETUP_ERROR."""
     mock_porkbun_client.ping.side_effect = PorkbunAuthError("Invalid key")
     entry = make_entry(hass)
@@ -49,9 +47,7 @@ async def test_setup_entry_auth_failure_sets_setup_error(
     assert entry.state is ConfigEntryState.SETUP_ERROR
 
 
-async def test_setup_entry_api_failure_sets_setup_retry(
-    hass: HomeAssistant, mock_porkbun_client: AsyncMock
-) -> None:
+async def test_setup_entry_api_failure_sets_setup_retry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test transient API failures are surfaced as SETUP_RETRY."""
     mock_porkbun_client.ping.side_effect = PorkbunApiError("Temporary outage")
     entry = make_entry(hass)
