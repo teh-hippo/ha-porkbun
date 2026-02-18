@@ -9,7 +9,6 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.porkbun_ddns.api import (
     DnsRecord,
@@ -17,19 +16,13 @@ from custom_components.porkbun_ddns.api import (
     PorkbunAuthError,
 )
 from custom_components.porkbun_ddns.const import (
-    CONF_API_KEY,
-    CONF_DOMAIN,
-    CONF_IPV4,
     CONF_IPV6,
-    CONF_SECRET_KEY,
     CONF_SUBDOMAINS,
-    CONF_UPDATE_INTERVAL,
-    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
 from custom_components.porkbun_ddns.coordinator import PorkbunDdnsCoordinator
 
-from .conftest import MOCK_API_KEY, MOCK_DOMAIN, MOCK_IPV4, MOCK_IPV6, MOCK_SECRET_KEY
+from .conftest import MOCK_DOMAIN, MOCK_IPV4, MOCK_IPV6, make_entry
 
 
 @pytest.fixture(autouse=True)
@@ -37,32 +30,9 @@ def _enable_custom_integrations(enable_custom_integrations):
     """Enable custom integrations."""
 
 
-def _make_entry(hass: HomeAssistant, **options) -> MockConfigEntry:
-    """Create a mock config entry."""
-    defaults = {
-        CONF_SUBDOMAINS: [],
-        CONF_IPV4: True,
-        CONF_IPV6: False,
-        CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
-    }
-    defaults.update(options)
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        unique_id=MOCK_DOMAIN,
-        data={
-            CONF_API_KEY: MOCK_API_KEY,
-            CONF_SECRET_KEY: MOCK_SECRET_KEY,
-            CONF_DOMAIN: MOCK_DOMAIN,
-        },
-        options=defaults,
-    )
-    entry.add_to_hass(hass)
-    return entry
-
-
 async def test_coordinator_creates_record_if_missing(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator creates a DNS record when none exists."""
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     data = await coordinator._async_update_data()
@@ -79,7 +49,7 @@ async def test_coordinator_skips_when_ip_matches(hass: HomeAssistant, mock_porkb
     mock_porkbun_client.get_records.return_value = [
         DnsRecord(id="123", name="example.com", record_type="A", content=MOCK_IPV4, ttl="600")
     ]
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     data = await coordinator._async_update_data()
@@ -94,7 +64,7 @@ async def test_coordinator_updates_when_ip_differs(hass: HomeAssistant, mock_por
     mock_porkbun_client.get_records.return_value = [
         DnsRecord(id="123", name="example.com", record_type="A", content="9.9.9.9", ttl="600")
     ]
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     data = await coordinator._async_update_data()
@@ -106,7 +76,7 @@ async def test_coordinator_updates_when_ip_differs(hass: HomeAssistant, mock_por
 async def test_coordinator_auth_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator raises ConfigEntryAuthFailed on auth error."""
     mock_porkbun_client.ping.side_effect = PorkbunAuthError("Invalid key")
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     with pytest.raises(ConfigEntryAuthFailed):
@@ -116,7 +86,7 @@ async def test_coordinator_auth_error(hass: HomeAssistant, mock_porkbun_client: 
 async def test_coordinator_api_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator raises UpdateFailed on API error."""
     mock_porkbun_client.ping.side_effect = PorkbunApiError("Server error")
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     with pytest.raises(UpdateFailed):
@@ -125,7 +95,7 @@ async def test_coordinator_api_error(hass: HomeAssistant, mock_porkbun_client: A
 
 async def test_coordinator_with_subdomains(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator processes both root and subdomains."""
-    entry = _make_entry(hass, **{CONF_SUBDOMAINS: ["www", "vpn"]})
+    entry = make_entry(hass, **{CONF_SUBDOMAINS: ["www", "vpn"]})
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     data = await coordinator._async_update_data()
@@ -139,14 +109,14 @@ async def test_coordinator_with_subdomains(hass: HomeAssistant, mock_porkbun_cli
 
 async def test_coordinator_domain_property(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test the domain property returns the configured domain."""
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
     assert coordinator.domain == MOCK_DOMAIN
 
 
 async def test_coordinator_record_count_no_data(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test record_count and ok_count return 0 with no records."""
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
     # Before first update, data is empty
     assert coordinator.record_count == 0
@@ -156,7 +126,7 @@ async def test_coordinator_record_count_no_data(hass: HomeAssistant, mock_porkbu
 
 async def test_coordinator_ipv6_update(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator creates AAAA records when IPv6 is enabled."""
-    entry = _make_entry(hass, **{CONF_IPV6: True})
+    entry = make_entry(hass, **{CONF_IPV6: True})
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     # Mock _get_ipv6 to return an address
@@ -170,7 +140,7 @@ async def test_coordinator_ipv6_update(hass: HomeAssistant, mock_porkbun_client:
 
 async def test_coordinator_ipv6_detect_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator handles IPv6 detection failure gracefully."""
-    entry = _make_entry(hass, **{CONF_IPV6: True})
+    entry = make_entry(hass, **{CONF_IPV6: True})
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     # Mock _get_ipv6 to return None (detection failed)
@@ -185,7 +155,7 @@ async def test_coordinator_ipv6_detect_error(hass: HomeAssistant, mock_porkbun_c
 async def test_coordinator_domain_info_fetch_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator handles domain info fetch failure gracefully."""
     mock_porkbun_client.get_domain_info.side_effect = PorkbunApiError("Not found")
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     data = await coordinator._async_update_data()
@@ -200,7 +170,7 @@ async def test_coordinator_api_error_creates_issue(hass: HomeAssistant, mock_por
     from homeassistant.helpers import issue_registry as ir
 
     mock_porkbun_client.ping.side_effect = PorkbunApiError("API disabled")
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     with pytest.raises(UpdateFailed):
@@ -214,7 +184,7 @@ async def test_coordinator_api_error_creates_issue(hass: HomeAssistant, mock_por
 async def test_coordinator_record_update_failure(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator handles individual record update failure."""
     mock_porkbun_client.get_records.side_effect = PorkbunApiError("Record error")
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     data = await coordinator._async_update_data()
@@ -228,7 +198,7 @@ async def test_coordinator_record_update_failure(hass: HomeAssistant, mock_porkb
 async def test_coordinator_network_timeout(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator raises UpdateFailed when the API times out."""
     mock_porkbun_client.ping.side_effect = TimeoutError()
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     with pytest.raises(UpdateFailed):
@@ -238,7 +208,7 @@ async def test_coordinator_network_timeout(hass: HomeAssistant, mock_porkbun_cli
 async def test_coordinator_network_connection_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test coordinator raises UpdateFailed on network connection failure."""
     mock_porkbun_client.ping.side_effect = aiohttp.ClientConnectionError("Network down")
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     with pytest.raises(UpdateFailed):
@@ -247,7 +217,7 @@ async def test_coordinator_network_connection_error(hass: HomeAssistant, mock_po
 
 async def test_get_ipv6_success(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test _get_ipv6 returns the IPv6 address on success."""
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     mock_resp = MagicMock()
@@ -268,7 +238,7 @@ async def test_coordinator_clears_issue_after_success(hass: HomeAssistant, mock_
     from homeassistant.helpers import issue_registry as ir
 
     mock_porkbun_client.ping.side_effect = [PorkbunApiError("API disabled"), MOCK_IPV4]
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     with pytest.raises(UpdateFailed):
@@ -284,7 +254,7 @@ async def test_coordinator_clears_issue_after_success(hass: HomeAssistant, mock_
 
 async def test_get_ipv6_failure(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test _get_ipv6 returns None on connection error."""
-    entry = _make_entry(hass)
+    entry = make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     mock_session = MagicMock()

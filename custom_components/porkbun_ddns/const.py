@@ -1,8 +1,8 @@
 """Constants for Porkbun DDNS."""
 
-from logging import Logger, getLogger
+from logging import getLogger
 
-LOGGER: Logger = getLogger(__package__)
+LOGGER = getLogger(__package__)
 
 DOMAIN = "porkbun_ddns"
 __version__ = "0.11.2"

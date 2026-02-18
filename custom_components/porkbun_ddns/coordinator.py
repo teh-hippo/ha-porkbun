@@ -51,9 +51,10 @@ class DdnsData:
     last_updated: datetime | None = None
     domain_info: DomainInfo | None = None
 
-    def record_key(self, subdomain: str, record_type: str) -> str:
-        """Generate a unique key for a record."""
-        return f"{subdomain or '@'}_{record_type}"
+
+def _record_key(subdomain: str, record_type: str) -> str:
+    """Generate a unique key for a record."""
+    return f"{subdomain or '@'}_{record_type}"
 
 
 class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
@@ -101,6 +102,11 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     def subdomains(self) -> list[str]:
         """Return configured subdomains."""
         return self.config_entry.options.get(CONF_SUBDOMAINS, [])  # type: ignore[return-value]
+
+    @property
+    def managed_records(self) -> list[str]:
+        """Return all managed hostnames (root + configured subdomains)."""
+        return [f"{sub}.{self._domain}" if sub else self._domain for sub in [""] + self.subdomains]
 
     @property
     def ipv4_enabled(self) -> bool:
@@ -209,7 +215,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         target_ip: str,
     ) -> None:
         """Check and update a single DNS record if the IP has changed."""
-        key = data.record_key(subdomain, record_type)
+        key = _record_key(subdomain, record_type)
         state = data.records.get(key, RecordState())
         label = f"{subdomain}.{self._domain}" if subdomain else self._domain
 

@@ -73,8 +73,7 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, list[str]]:
         """Return managed DNS records as attributes."""
-        targets = [""] + self.coordinator.subdomains
-        return {"managed_records": [f"{sub}.{self._domain_name}" if sub else self._domain_name for sub in targets]}
+        return {"managed_records": self.coordinator.managed_records}
 
 
 class DdnsManagedSubdomainsSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
@@ -102,8 +101,7 @@ class DdnsManagedSubdomainsSensor(CoordinatorEntity[PorkbunDdnsCoordinator], Sen
     @property
     def extra_state_attributes(self) -> dict[str, list[str]]:
         """Return managed records with full hostnames."""
-        targets = [""] + self.coordinator.subdomains
-        return {"managed_records": [f"{sub}.{self._domain_name}" if sub else self._domain_name for sub in targets]}
+        return {"managed_records": self.coordinator.managed_records}
 
 
 class DdnsLastUpdatedSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):

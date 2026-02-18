@@ -51,4 +51,4 @@ async def async_remove_config_entry_device(
 ) -> bool:
     """Allow removal of a device if it is no longer active."""
     domain_name: str = config_entry.data[CONF_DOMAIN]
-    return not any(identifier for identifier in device_entry.identifiers if identifier == (DOMAIN, domain_name))
+    return (DOMAIN, domain_name) not in device_entry.identifiers

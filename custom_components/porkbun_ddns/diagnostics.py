@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Any
 
 from homeassistant.components.diagnostics import async_redact_data
@@ -20,23 +21,11 @@ async def async_get_config_entry_diagnostics(
     coordinator = entry.runtime_data
     data = coordinator.data
 
-    records: dict[str, dict[str, Any]] = {}
-    for key, state in data.records.items():
-        records[key] = {
-            "current_ip": state.current_ip,
-            "ok": state.ok,
-            "error": state.error,
-        }
+    records = {key: asdict(state) for key, state in data.records.items()}
 
     domain_info: dict[str, Any] | None = None
     if data.domain_info:
-        domain_info = {
-            "domain": data.domain_info.domain,
-            "status": data.domain_info.status,
-            "expire_date": data.domain_info.expire_date,
-            "whois_privacy": data.domain_info.whois_privacy,
-            "auto_renew": data.domain_info.auto_renew,
-        }
+        domain_info = asdict(data.domain_info)
 
     return {
         "config": async_redact_data(dict(entry.data), REDACT_KEYS),
