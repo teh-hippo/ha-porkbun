@@ -64,11 +64,11 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
 
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
-        self._domain = config_entry.data[CONF_DOMAIN]
-        self._api_key = config_entry.data[CONF_API_KEY]
-        self._secret_key = config_entry.data[CONF_SECRET_KEY]
+        self._domain = str(config_entry.data[CONF_DOMAIN])
+        self._api_key = str(config_entry.data[CONF_API_KEY])
+        self._secret_key = str(config_entry.data[CONF_SECRET_KEY])
 
-        interval = config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+        interval = int(config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
 
         super().__init__(
             hass,
@@ -101,7 +101,10 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     @property
     def subdomains(self) -> list[str]:
         """Return configured subdomains."""
-        return self.config_entry.options.get(CONF_SUBDOMAINS, [])  # type: ignore[return-value]
+        subdomains = self.config_entry.options.get(CONF_SUBDOMAINS, [])
+        if not isinstance(subdomains, list):
+            return []
+        return [subdomain for subdomain in subdomains if isinstance(subdomain, str)]
 
     @property
     def managed_records(self) -> list[str]:
@@ -111,12 +114,12 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     @property
     def ipv4_enabled(self) -> bool:
         """Return whether IPv4 updates are enabled."""
-        return self.config_entry.options.get(CONF_IPV4, True)  # type: ignore[return-value]
+        return bool(self.config_entry.options.get(CONF_IPV4, True))
 
     @property
     def ipv6_enabled(self) -> bool:
         """Return whether IPv6 updates are enabled."""
-        return self.config_entry.options.get(CONF_IPV6, False)  # type: ignore[return-value]
+        return bool(self.config_entry.options.get(CONF_IPV6, False))
 
     @property
     def record_count(self) -> int:

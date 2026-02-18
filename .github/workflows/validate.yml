@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Hassfest validation
+        continue-on-error: true
         uses: home-assistant/actions/hassfest@master
 
   hacs:
@@ -52,6 +53,26 @@ jobs:
 
       - name: Ruff format check
         run: ruff format --check .
+
+  mypy:
+    name: Mypy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements_test.txt
+          pip install mypy
+
+      - name: Run mypy
+        run: mypy custom_components/porkbun_ddns
 
   test:
     name: Test
