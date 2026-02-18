@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
+from functools import cached_property
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
@@ -11,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import DomainInfo, PorkbunApiError, PorkbunAuthError, PorkbunClient
@@ -76,11 +78,24 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             always_update=True,
         )
         self.data = DdnsData()
+        self._client = PorkbunClient(async_get_clientsession(hass), self._api_key, self._secret_key)
 
     @property
     def domain(self) -> str:
         """Return the domain name."""
         return self._domain
+
+    @cached_property
+    def device_info(self) -> DeviceInfo:
+        """Return shared device info for all entities under this domain."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._domain)},
+            name=self._domain,
+            manufacturer="Porkbun",
+            model="DDNS",
+            entry_type=DeviceEntryType.SERVICE,
+            configuration_url="https://porkbun.com/account/domains",
+        )
 
     @property
     def subdomains(self) -> list[str]:
@@ -117,7 +132,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         data = self.data
         try:
             session = async_get_clientsession(self.hass)
-            client = PorkbunClient(session, self._api_key, self._secret_key)
+            client = self._client
 
             # Get current public IPs
             if self.ipv4_enabled:

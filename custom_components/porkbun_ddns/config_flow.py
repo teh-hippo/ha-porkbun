@@ -7,9 +7,17 @@ from typing import Any
 
 import aiohttp
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlowWithReload
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
 
 from .api import PorkbunAuthError, PorkbunClient
 from .const import (
@@ -28,7 +36,7 @@ from .const import (
 STEP_USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_KEY): str,
-        vol.Required(CONF_SECRET_KEY): str,
+        vol.Required(CONF_SECRET_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
     }
 )
 
@@ -46,6 +54,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Porkbun DDNS."""
 
     VERSION = 1
+    MINOR_VERSION = 1
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -199,7 +208,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
 
-class PorkbunDdnsOptionsFlow(OptionsFlow):
+class PorkbunDdnsOptionsFlow(OptionsFlowWithReload):
     """Handle options for Porkbun DDNS."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
@@ -211,7 +220,7 @@ class PorkbunDdnsOptionsFlow(OptionsFlow):
                     CONF_SUBDOMAINS: subdomains,
                     CONF_IPV4: user_input.get(CONF_IPV4, True),
                     CONF_IPV6: user_input.get(CONF_IPV6, False),
-                    CONF_UPDATE_INTERVAL: user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
+                    CONF_UPDATE_INTERVAL: int(user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)),
                 }
             )
 
@@ -223,7 +232,13 @@ class PorkbunDdnsOptionsFlow(OptionsFlow):
                     vol.Optional(
                         CONF_UPDATE_INTERVAL,
                         default=current.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=60)),
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=60,
+                            step=60,
+                            mode=NumberSelectorMode.BOX,
+                        )
+                    ),
                     vol.Optional(
                         CONF_SUBDOMAINS,
                         default=", ".join(current.get(CONF_SUBDOMAINS, [])),

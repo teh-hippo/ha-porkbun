@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import PorkbunDdnsConfigEntry, device_info
+from . import PorkbunDdnsConfigEntry
 from .const import CONF_DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
@@ -50,7 +50,7 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
         """Initialize the health sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_health"
-        self._attr_device_info = device_info(domain_name)
+        self._attr_device_info = coordinator.device_info
 
     @property
     def is_on(self) -> bool | None:
@@ -100,7 +100,7 @@ class DdnsWhoisPrivacySensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySe
         """Initialize the WHOIS privacy sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_whois_privacy"
-        self._attr_device_info = device_info(domain_name)
+        self._attr_device_info = coordinator.device_info
 
     @property
     def is_on(self) -> bool | None:

@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import PorkbunDdnsConfigEntry, device_info
+from . import PorkbunDdnsConfigEntry
 from .const import CONF_DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
@@ -61,7 +61,7 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
         ip_version = "ipv4" if record_type == "A" else "ipv6"
         self._attr_translation_key = f"public_{ip_version}"
         self._attr_unique_id = f"{domain_name}_{record_type}_ip"
-        self._attr_device_info = device_info(domain_name)
+        self._attr_device_info = coordinator.device_info
 
     @property
     def native_value(self) -> str | None:
@@ -92,7 +92,7 @@ class DdnsManagedSubdomainsSensor(CoordinatorEntity[PorkbunDdnsCoordinator], Sen
         super().__init__(coordinator)
         self._domain_name = domain_name
         self._attr_unique_id = f"{domain_name}_managed_subdomains"
-        self._attr_device_info = device_info(domain_name)
+        self._attr_device_info = coordinator.device_info
 
     @property
     def native_value(self) -> str:
@@ -121,7 +121,7 @@ class DdnsLastUpdatedSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnt
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_last_updated"
         self._attr_translation_key = "last_updated"
-        self._attr_device_info = device_info(domain_name)
+        self._attr_device_info = coordinator.device_info
 
     @property
     def native_value(self) -> datetime | None:
@@ -144,7 +144,7 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_next_update"
         self._attr_translation_key = "next_update"
-        self._attr_device_info = device_info(domain_name)
+        self._attr_device_info = coordinator.device_info
 
     @property
     def native_value(self) -> datetime | None:
@@ -174,7 +174,7 @@ class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEn
         super().__init__(coordinator)
         self._attr_unique_id = f"{domain_name}_domain_expiry"
         self._attr_translation_key = "domain_expiry"
-        self._attr_device_info = device_info(domain_name)
+        self._attr_device_info = coordinator.device_info
 
     @property
     def native_value(self) -> datetime | None:
