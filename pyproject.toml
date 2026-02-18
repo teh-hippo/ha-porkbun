@@ -12,13 +12,24 @@ testpaths = ["tests"]
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
+version_variables = ["custom_components/porkbun_ddns/manifest.json:version"]
 build_command = ""
 commit_message = "chore(release): {version}"
 tag_format = "v{version}"
 
+[tool.semantic_release.commit_parser_options]
+patch_tags = ["fix", "perf", "build"]
+other_allowed_tags = ["chore", "ci", "docs", "style", "refactor", "test"]
+
 [tool.semantic_release.branches.master]
 match = "master"
 prerelease = false
+
+[tool.semantic_release.changelog]
+mode = "init"
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
 
 [tool.semantic_release.remote]
 type = "github"
@@ -40,7 +51,20 @@ module = [
 ]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+warn_return_any = false
+disable_error_code = ["arg-type", "type-arg"]
+
 [dependency-groups]
 dev = [
-    "mypy>=1.19.1",
+    "coverage>=7.0",
+    "mypy>=1.15",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-homeassistant-custom-component>=0.13",
+    "ruff>=0.9",
 ]

@@ -67,17 +67,13 @@ Disabled by default:
 - Repair issue (`api_access_disabled`): re-enable API access, then press **Refresh DDNS Records**
 - IPv6 not updating: verify IPv6 connectivity and external reachability
 
-## Development checks (CI parity)
+## Development
 
 ```bash
-.venv/bin/ruff check .
-.venv/bin/ruff format --check .
-.venv/bin/mypy custom_components/porkbun_ddns
-.venv/bin/pytest tests/ -v
+bash scripts/check.sh
 ```
 
-Uses [Conventional Commits](https://www.conventionalcommits.org/) for semantic-release.
-Releases publish `porkbun_ddns.zip`; tags are the release source of truth.
+Requires [uv](https://docs.astral.sh/uv/). Uses [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## License
 

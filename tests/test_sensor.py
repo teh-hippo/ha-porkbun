@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -73,7 +74,7 @@ async def test_disabled_by_default_sensors(
 async def test_timestamp_sensor_values(
     hass: HomeAssistant,
     mock_porkbun_client: AsyncMock,
-    freezer,
+    freezer: Any,
 ) -> None:
     freezer.move_to("2026-02-18 12:00:00+00:00")
     entry = make_entry(hass)
