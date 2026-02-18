@@ -6,23 +6,23 @@
 [![Validate][validate-badge]][validate-url]
 
 Home Assistant custom integration for [Porkbun](https://porkbun.com) Dynamic DNS.
-It keeps A/AAAA records in sync with your current public IP.
+It keeps A/AAAA DNS records synced with your public IP.
 
-## What it does
+## Features
 
-- Updates DNS records only when IPs change
-- Supports IPv4 and optional IPv6
-- Supports multiple domains (one config entry per domain)
-- Includes health, timestamp, and diagnostics entities
-- Surfaces API-access problems in Home Assistant Repairs
+- Updates records only when IP changes
+- IPv4 support, optional IPv6
+- Multiple domains (one config entry per domain)
+- Health/diagnostic/timestamp entities
+- Home Assistant Repairs issue on API-access failures
 
 ## Prerequisites
 
 1. Domain managed at Porkbun
-2. API access enabled for that domain (`Domain Management` → domain → API Access)
+2. Domain API access enabled
 3. Porkbun API key + secret from [porkbun.com/account/api](https://porkbun.com/account/api)
 
-## Installation
+## Install
 
 ### HACS (recommended)
 
@@ -33,99 +33,51 @@ It keeps A/AAAA records in sync with your current public IP.
 
 ### Manual
 
-1. Copy `custom_components/porkbun_ddns` into `<config>/custom_components/`
+1. Copy `custom_components/porkbun_ddns` to `<config>/custom_components/`
 2. Restart Home Assistant
 
-## Setup
+## Configure
 
-1. Home Assistant → **Settings** → **Devices & Services** → **Add Integration**
-2. Select **Porkbun DDNS**
-3. Enter API key + secret key
-4. Enter domain, optional subdomains, and IPv4/IPv6 options
+Home Assistant → **Settings** → **Devices & Services** → **Add Integration** → **Porkbun DDNS**.
 
-### Options
-
-| Option | Default | Notes |
-|---|---|---|
-| Update interval | 300s | Minimum 60s |
-| Subdomains | empty | Comma-separated (`www, vpn`) |
-| IPv4 (A) | Enabled | Recommended |
-| IPv6 (AAAA) | Disabled | Enable if your network has IPv6 |
+Options:
+- Update interval (default `300s`, minimum `60s`)
+- Subdomains (comma-separated, e.g. `www, vpn`)
+- IPv4 / IPv6 toggles
 
 ## Entities
 
-| Platform | Entity | Default | Description |
-|---|---|---|---|
-| `binary_sensor` | DNS Status | Enabled | On when any managed record update fails |
-| `sensor` | Managed Subdomains | Enabled | Root + configured subdomains |
-| `sensor` | Last Updated | Enabled | Timestamp of most recent coordinator run |
-| `sensor` | Next Update | Enabled | Timestamp of next scheduled poll |
-| `sensor` | Public IPv4 | Disabled | Current public IPv4 |
-| `sensor` | Public IPv6 | Disabled | Current public IPv6 |
-| `sensor` | Domain Expiry | Disabled | Domain expiry timestamp |
-| `binary_sensor` | WHOIS Privacy | Disabled | WHOIS privacy status |
-| `button` | Refresh DDNS Records | Enabled | Forces immediate refresh |
+Enabled by default:
+- `binary_sensor.*_dns_status`
+- `sensor.*_managed_subdomains`
+- `sensor.*_last_updated`
+- `sensor.*_next_update`
+- `button.*_refresh_ddns_records`
+
+Disabled by default:
+- `sensor.*_public_ipv4`
+- `sensor.*_public_ipv6`
+- `sensor.*_domain_expiry`
+- `binary_sensor.*_whois_privacy`
 
 ## Troubleshooting
 
-| Problem | Resolution |
-|---|---|
-| Invalid API key/secret | Regenerate keys at [porkbun.com/account/api](https://porkbun.com/account/api) and re-enter |
-| Domain not accessible | Enable domain API access in Porkbun dashboard |
-| Repair issue: API access disabled | Same as above; then press **Refresh DDNS Records** |
-| IPv6 not updating | Verify IPv6 connectivity and external reachability |
+- Invalid key/secret: regenerate at [porkbun.com/account/api](https://porkbun.com/account/api)
+- Domain not accessible: enable API access in Porkbun domain settings
+- Repair issue (`api_access_disabled`): re-enable API access, then press **Refresh DDNS Records**
+- IPv6 not updating: verify IPv6 connectivity and external reachability
 
-## Behavior notes
-
-- Polling integration (no webhook mode)
-- Porkbun minimum TTL is 600 seconds
-- IPv6 detection uses `api6.ipify.org`
-- Removing the integration does not delete DNS records
-
-## Development
-
-### Setup
+## Development checks (CI parity)
 
 ```bash
-git clone https://github.com/teh-hippo/ha-porkbun.git
-cd ha-porkbun
-uv venv .venv && source .venv/bin/activate
-uv pip install -r requirements_test.txt
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+.venv/bin/mypy custom_components/porkbun_ddns
+.venv/bin/pytest tests/ -v
 ```
 
-### CI parity (run before push)
-
-```bash
-ruff check .
-ruff format --check .
-mypy custom_components/porkbun_ddns
-pytest tests/ -v
-```
-
-### Pre-commit (recommended)
-
-```bash
-pip install pre-commit
-pre-commit install
-```
-
-### Commit conventions
-
-Uses [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat:` → minor bump
-- `fix:` → patch bump
-- `feat!:` / `BREAKING CHANGE:` → major bump
-
-## Releases
-
-- HACS consumes release ZIP assets (`porkbun_ddns.zip`)
-- `hacs.json` is configured with `zip_release: true`
-- Tags are the source of truth for released versions
-
-## Disclaimer
-
-This project is not affiliated with Porkbun LLC.
+Uses [Conventional Commits](https://www.conventionalcommits.org/) for semantic-release.
+Releases publish `porkbun_ddns.zip`; tags are the release source of truth.
 
 ## License
 

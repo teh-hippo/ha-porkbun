@@ -47,14 +47,11 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install ruff
-        run: pip install ruff
-
-      - name: Ruff check
-        run: ruff check .
-
-      - name: Ruff format check
-        run: ruff format --check .
+      - name: Ruff checks
+        run: |
+          pip install ruff
+          ruff check .
+          ruff format --check .
 
   mypy:
     name: Mypy
@@ -69,9 +66,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements_test.txt
-          pip install mypy
+        run: pip install -r requirements_test.txt && pip install mypy
 
       - name: Run mypy
         run: mypy custom_components/porkbun_ddns
