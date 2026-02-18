@@ -12,6 +12,7 @@ from custom_components.porkbun_ddns.api import (
     PorkbunAuthError,
     PorkbunClient,
 )
+from custom_components.porkbun_ddns.const import API_REQUEST_TIMEOUT
 
 API_KEY = "pk1_test"
 SECRET_KEY = "sk1_test"
@@ -215,9 +216,6 @@ async def test_get_domain_info_not_found() -> None:
 
 async def test_request_passes_timeout() -> None:
     """Test that _request passes a timeout to the session post call."""
-    import aiohttp as _aiohttp
-    from custom_components.porkbun_ddns.const import API_REQUEST_TIMEOUT
-
     resp = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
     session = _make_session(resp)
     await _client(session).ping()
@@ -225,7 +223,7 @@ async def test_request_passes_timeout() -> None:
     _, kwargs = session.post.call_args
     timeout = kwargs.get("timeout")
     assert timeout is not None
-    assert isinstance(timeout, _aiohttp.ClientTimeout)
+    assert isinstance(timeout, aiohttp.ClientTimeout)
     assert timeout.total == API_REQUEST_TIMEOUT
 
 

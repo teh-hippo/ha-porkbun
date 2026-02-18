@@ -178,7 +178,7 @@ async def test_next_update_sensor_value(hass: HomeAssistant, mock_porkbun_client
 
 async def test_next_update_sensor_refreshing_when_overdue(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test that the next update sensor shows 'Refreshing' when the scheduled time has passed."""
-    from datetime import UTC, timedelta
+    from datetime import timedelta
 
     entry = _make_entry(hass)
 
