@@ -5,7 +5,6 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from .const import CONF_DOMAIN, DOMAIN
@@ -24,7 +23,7 @@ def device_info(domain_name: str) -> DeviceInfo:
         manufacturer="Porkbun",
         model="DDNS",
         entry_type=DeviceEntryType.SERVICE,
-        configuration_url=f"https://porkbun.com/account/domainsSpe498/{domain_name}",
+        configuration_url="https://porkbun.com/account/domains",
     )
 
 
@@ -39,9 +38,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
-
-    # Clear any previous repair issues for this domain
-    ir.async_delete_issue(hass, DOMAIN, f"api_access_{entry.data[CONF_DOMAIN]}")
 
     return True
 

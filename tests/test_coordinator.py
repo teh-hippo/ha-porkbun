@@ -243,6 +243,9 @@ async def test_coordinator_network_connection_error(hass: HomeAssistant, mock_po
 
     with pytest.raises(UpdateFailed):
         await coordinator._async_update_data()
+
+
+async def test_get_ipv6_success(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test _get_ipv6 returns the IPv6 address on success."""
     entry = _make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)
@@ -258,6 +261,25 @@ async def test_coordinator_network_connection_error(hass: HomeAssistant, mock_po
 
     result = await coordinator._get_ipv6(mock_session)
     assert result == MOCK_IPV6
+
+
+async def test_coordinator_clears_issue_after_success(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test that a successful update clears a previously created API access issue."""
+    from homeassistant.helpers import issue_registry as ir
+
+    mock_porkbun_client.ping.side_effect = [PorkbunApiError("API disabled"), MOCK_IPV4]
+    entry = _make_entry(hass)
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()
+
+    issue_reg = ir.async_get(hass)
+    assert issue_reg.async_get_issue(DOMAIN, f"api_access_{MOCK_DOMAIN}") is not None
+
+    await coordinator._async_update_data()
+
+    assert issue_reg.async_get_issue(DOMAIN, f"api_access_{MOCK_DOMAIN}") is None
 
 
 async def test_get_ipv6_failure(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:

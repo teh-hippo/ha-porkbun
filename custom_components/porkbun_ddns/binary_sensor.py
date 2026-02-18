@@ -15,7 +15,7 @@ from . import PorkbunDdnsConfigEntry, device_info
 from .const import CONF_DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(

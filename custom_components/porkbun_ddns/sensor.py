@@ -14,7 +14,7 @@ from . import PorkbunDdnsConfigEntry, device_info
 from .const import CONF_DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
-PARALLEL_UPDATES = 1
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -133,6 +133,7 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
     """Device-level sensor showing when the next update check is scheduled."""
 
     _attr_has_entity_name = True
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(
         self,
@@ -146,17 +147,14 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
         self._attr_device_info = device_info(domain_name)
 
     @property
-    def native_value(self) -> datetime | str | None:
-        """Return the next scheduled update timestamp, or 'Refreshing' when overdue."""
+    def native_value(self) -> datetime | None:
+        """Return the next scheduled update timestamp."""
         if not self.coordinator.data.last_updated:
             return None
         interval = self.coordinator.update_interval
         if interval is None:
             return None
-        next_update = self.coordinator.data.last_updated + interval
-        if next_update <= datetime.now(tz=UTC):
-            return "Refreshing"
-        return next_update
+        return self.coordinator.data.last_updated + interval
 
 
 class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):

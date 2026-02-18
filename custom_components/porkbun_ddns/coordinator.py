@@ -114,11 +114,10 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
 
     async def _async_update_data(self) -> DdnsData:
         """Fetch current IP and update DNS records if needed."""
+        data = self.data
         try:
             session = async_get_clientsession(self.hass)
             client = PorkbunClient(session, self._api_key, self._secret_key)
-            data = self.data or DdnsData()
-            now = datetime.now(tz=UTC)
 
             # Get current public IPs
             if self.ipv4_enabled:
@@ -149,14 +148,14 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                         data.public_ipv6,
                     )
 
-            data.last_updated = now
-
             # Fetch domain registration info (non-critical, don't fail on error)
             try:
                 data.domain_info = await client.get_domain_info(self._domain)
             except (PorkbunApiError, aiohttp.ClientError, TimeoutError):
                 LOGGER.debug("Failed to fetch domain info for %s", self._domain)
 
+            data.last_updated = datetime.now(tz=UTC)
+            ir.async_delete_issue(self.hass, DOMAIN, f"api_access_{self._domain}")
             return data
 
         except PorkbunAuthError as err:

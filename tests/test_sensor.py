@@ -177,7 +177,7 @@ async def test_next_update_sensor_value(hass: HomeAssistant, mock_porkbun_client
 
 
 async def test_next_update_sensor_refreshing_when_overdue(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test that the next update sensor shows 'Refreshing' when the scheduled time has passed."""
+    """Test that the next update sensor stays a timestamp even when overdue."""
     from datetime import timedelta
 
     entry = _make_entry(hass)
@@ -192,7 +192,7 @@ async def test_next_update_sensor_refreshing_when_overdue(hass: HomeAssistant, m
 
     state = hass.states.get(_get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_next_update"))
     assert state is not None
-    assert state.state == "Refreshing"
+    assert state.state not in {"unknown", "unavailable", "Refreshing"}
 
 
 async def test_domain_expiry_sensor_value(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
