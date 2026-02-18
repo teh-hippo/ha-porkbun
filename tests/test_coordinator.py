@@ -225,7 +225,24 @@ async def test_coordinator_record_update_failure(hass: HomeAssistant, mock_porkb
     assert record.error is not None
 
 
-async def test_get_ipv6_success(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+async def test_coordinator_network_timeout(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test coordinator raises UpdateFailed when the API times out."""
+    mock_porkbun_client.ping.side_effect = TimeoutError()
+    entry = _make_entry(hass)
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()
+
+
+async def test_coordinator_network_connection_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test coordinator raises UpdateFailed on network connection failure."""
+    mock_porkbun_client.ping.side_effect = aiohttp.ClientConnectionError("Network down")
+    entry = _make_entry(hass)
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()
     """Test _get_ipv6 returns the IPv6 address on success."""
     entry = _make_entry(hass)
     coordinator = PorkbunDdnsCoordinator(hass, entry)

@@ -7,7 +7,7 @@ from typing import Any
 
 import aiohttp
 
-from .const import LOGGER, PORKBUN_API_BASE
+from .const import LOGGER, PORKBUN_API_BASE, API_REQUEST_TIMEOUT
 
 
 class PorkbunApiError(Exception):
@@ -68,7 +68,7 @@ class PorkbunClient:
             payload.update(extra)
 
         LOGGER.debug("Porkbun API request: POST %s", url)
-        async with self._session.post(url, json=payload) as resp:
+        async with self._session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=API_REQUEST_TIMEOUT)) as resp:
             data: dict[str, Any] = await resp.json(content_type=None)
             LOGGER.debug("Porkbun API response: %s %s", resp.status, data.get("status"))
 

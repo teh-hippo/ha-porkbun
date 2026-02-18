@@ -20,3 +20,4 @@ CONF_UPDATE_INTERVAL = "update_interval"
 
 PORKBUN_API_BASE = "https://api-ipv4.porkbun.com/api/json/v3"
 IPV6_DETECT_URL = "https://api6.ipify.org"
+API_REQUEST_TIMEOUT = 10  # seconds per API call

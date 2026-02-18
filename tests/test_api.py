@@ -211,3 +211,31 @@ async def test_get_domain_info_not_found() -> None:
     session = _make_session(resp)
     info = await _client(session).get_domain_info("example.com")
     assert info is None
+
+
+async def test_request_passes_timeout() -> None:
+    """Test that _request passes a timeout to the session post call."""
+    import aiohttp as _aiohttp
+    from custom_components.porkbun_ddns.const import API_REQUEST_TIMEOUT
+
+    resp = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
+    session = _make_session(resp)
+    await _client(session).ping()
+
+    _, kwargs = session.post.call_args
+    timeout = kwargs.get("timeout")
+    assert timeout is not None
+    assert isinstance(timeout, _aiohttp.ClientTimeout)
+    assert timeout.total == API_REQUEST_TIMEOUT
+
+
+async def test_request_timeout_raises_update_failed() -> None:
+    """Test that a TimeoutError from the session propagates correctly."""
+    session = MagicMock(spec=aiohttp.ClientSession)
+    ctx = MagicMock()
+    ctx.__aenter__ = AsyncMock(side_effect=TimeoutError())
+    ctx.__aexit__ = AsyncMock(return_value=False)
+    session.post.return_value = ctx
+
+    with pytest.raises(TimeoutError):
+        await _client(session).ping()
