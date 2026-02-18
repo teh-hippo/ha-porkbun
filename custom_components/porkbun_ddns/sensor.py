@@ -11,7 +11,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import PorkbunDdnsConfigEntry
-from .const import CONF_DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
 PARALLEL_UPDATES = 0
@@ -24,7 +23,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Porkbun DDNS sensors from a config entry."""
     coordinator = entry.runtime_data
-    domain_name = entry.data[CONF_DOMAIN]
+    domain_name = coordinator.domain
 
     entities: list[SensorEntity] = []
 
@@ -57,7 +56,6 @@ class DdnsIpSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
         """Initialize the IP sensor."""
         super().__init__(coordinator)
         self._record_type = record_type
-        self._domain_name = domain_name
         ip_version = "ipv4" if record_type == "A" else "ipv6"
         self._attr_translation_key = f"public_{ip_version}"
         self._attr_unique_id = f"{domain_name}_{record_type}_ip"
@@ -89,7 +87,6 @@ class DdnsManagedSubdomainsSensor(CoordinatorEntity[PorkbunDdnsCoordinator], Sen
     ) -> None:
         """Initialize the managed subdomains sensor."""
         super().__init__(coordinator)
-        self._domain_name = domain_name
         self._attr_unique_id = f"{domain_name}_managed_subdomains"
         self._attr_device_info = coordinator.device_info
 
@@ -147,12 +144,11 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
     @property
     def native_value(self) -> datetime | None:
         """Return the next scheduled update timestamp."""
-        if not self.coordinator.data.last_updated:
+        if (last_updated := self.coordinator.data.last_updated) is None or (
+            interval := self.coordinator.update_interval
+        ) is None:
             return None
-        interval = self.coordinator.update_interval
-        if interval is None:
-            return None
-        return self.coordinator.data.last_updated + interval
+        return last_updated + interval
 
 
 class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):

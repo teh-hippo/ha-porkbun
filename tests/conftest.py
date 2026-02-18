@@ -30,8 +30,12 @@ MOCK_IPV4 = "1.2.3.4"
 MOCK_IPV6 = "2001:db8::1"
 
 
+@pytest.fixture(autouse=True)
+def _enable_custom_integrations(enable_custom_integrations):
+    pass
+
+
 def make_entry(hass: HomeAssistant, *, domain_name: str = MOCK_DOMAIN, **options: Any) -> MockConfigEntry:
-    """Create and register a mock config entry."""
     defaults = {
         CONF_SUBDOMAINS: [],
         CONF_IPV4: True,
@@ -54,16 +58,37 @@ def make_entry(hass: HomeAssistant, *, domain_name: str = MOCK_DOMAIN, **options
 
 
 def get_entity_id(hass: HomeAssistant, platform: str, unique_id: str) -> str:
-    """Look up entity_id by unique_id via entity registry."""
     ent_reg = er.async_get(hass)
     entity_id = ent_reg.async_get_entity_id(platform, DOMAIN, unique_id)
     assert entity_id is not None, f"Entity not found: {platform}.{unique_id}"
     return entity_id
 
 
+async def setup_entry(hass: HomeAssistant, entry: MockConfigEntry) -> bool:
+    result = await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return result
+
+
+async def reload_entry(hass: HomeAssistant, entry: MockConfigEntry) -> None:
+    await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+
+async def enable_entity(
+    hass: HomeAssistant,
+    entry: MockConfigEntry,
+    platform: str,
+    unique_id: str,
+) -> str:
+    entity_id = get_entity_id(hass, platform, unique_id)
+    er.async_get(hass).async_update_entity(entity_id, disabled_by=None)
+    await reload_entry(hass, entry)
+    return entity_id
+
+
 @pytest.fixture
 def mock_porkbun_client() -> Generator[AsyncMock]:
-    """Mock the PorkbunClient."""
     with (
         patch(
             "custom_components.porkbun_ddns.coordinator.PorkbunClient",

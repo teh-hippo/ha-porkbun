@@ -9,7 +9,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import PorkbunDdnsConfigEntry
-from .const import CONF_DOMAIN
 from .coordinator import PorkbunDdnsCoordinator
 
 PARALLEL_UPDATES = 0
@@ -22,7 +21,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Porkbun DDNS buttons from a config entry."""
     coordinator = entry.runtime_data
-    domain_name = entry.data[CONF_DOMAIN]
+    domain_name = coordinator.domain
     async_add_entities([DdnsForceUpdateButton(coordinator, domain_name)])
 
 

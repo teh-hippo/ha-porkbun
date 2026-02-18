@@ -12,113 +12,75 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
+from custom_components.porkbun_ddns import async_remove_config_entry_device
 from custom_components.porkbun_ddns.api import PorkbunApiError, PorkbunAuthError
 from custom_components.porkbun_ddns.const import DEFAULT_UPDATE_INTERVAL, DOMAIN
 from custom_components.porkbun_ddns.coordinator import PorkbunDdnsCoordinator
 
-from .conftest import MOCK_DOMAIN, MOCK_IPV4, make_entry
+from .conftest import MOCK_DOMAIN, MOCK_IPV4, make_entry, setup_entry
 
 
-@pytest.fixture(autouse=True)
-def _enable_custom_integrations(enable_custom_integrations):
-    """Enable custom integrations."""
-
-
-async def test_setup_entry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test successful setup of a config entry."""
+async def test_setup_and_unload_entry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     entry = make_entry(hass)
-
-    result = await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert result is True
+    assert await setup_entry(hass, entry) is True
     assert isinstance(entry.runtime_data, PorkbunDdnsCoordinator)
 
+    assert await hass.config_entries.async_unload(entry.entry_id) is True
 
-async def test_setup_entry_auth_failure_sets_setup_error(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test auth failures are surfaced as SETUP_ERROR."""
-    mock_porkbun_client.ping.side_effect = PorkbunAuthError("Invalid key")
+
+@pytest.mark.parametrize(
+    ("side_effect", "expected_state"),
+    [
+        (PorkbunAuthError("Invalid key"), ConfigEntryState.SETUP_ERROR),
+        (PorkbunApiError("Temporary outage"), ConfigEntryState.SETUP_RETRY),
+    ],
+)
+async def test_setup_failure_states(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+    side_effect: Exception,
+    expected_state: ConfigEntryState,
+) -> None:
+    mock_porkbun_client.ping.side_effect = side_effect
     entry = make_entry(hass)
 
-    result = await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert result is False
-    assert entry.state is ConfigEntryState.SETUP_ERROR
-
-
-async def test_setup_entry_api_failure_sets_setup_retry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test transient API failures are surfaced as SETUP_RETRY."""
-    mock_porkbun_client.ping.side_effect = PorkbunApiError("Temporary outage")
-    entry = make_entry(hass)
-
-    result = await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert result is False
-    assert entry.state is ConfigEntryState.SETUP_RETRY
-
-
-async def test_unload_entry(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test unloading a config entry."""
-    entry = make_entry(hass)
-
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    result = await hass.config_entries.async_unload(entry.entry_id)
-    assert result is True
+    assert await setup_entry(hass, entry) is False
+    assert entry.state is expected_state
 
 
 async def test_coordinator_polls_on_time_change(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test coordinator performs scheduled polling when time advances."""
-    updated_ipv4 = "5.6.7.8"
-    mock_porkbun_client.ping.side_effect = [MOCK_IPV4, updated_ipv4]
+    mock_porkbun_client.ping.side_effect = [MOCK_IPV4, "5.6.7.8"]
     entry = make_entry(hass)
-
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_entry(hass, entry)
 
     first_call_count = mock_porkbun_client.ping.call_count
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=DEFAULT_UPDATE_INTERVAL + 1))
     await hass.async_block_till_done()
 
     assert mock_porkbun_client.ping.call_count > first_call_count
-    assert entry.runtime_data.data.public_ipv4 == updated_ipv4
+    assert entry.runtime_data.data.public_ipv4 == "5.6.7.8"
 
 
-async def test_remove_stale_device(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test that a stale (non-matching) device can be removed."""
+@pytest.mark.parametrize(
+    ("identifiers", "can_remove"),
+    [
+        ({(DOMAIN, "old-domain.com")}, True),
+        ({(DOMAIN, MOCK_DOMAIN)}, False),
+    ],
+)
+async def test_remove_config_entry_device_rules(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+    identifiers: set[tuple[str, str]],
+    can_remove: bool,
+) -> None:
     entry = make_entry(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    await setup_entry(hass, entry)
 
-    dev_reg = dr.async_get(hass)
-    # Create a stale device with a different identifier
-    stale_device = dev_reg.async_get_or_create(
+    device = dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,
-        identifiers={(DOMAIN, "old-domain.com")},
-        name="old-domain.com",
+        identifiers=identifiers,
+        name=next(iter(identifiers))[1],
     )
 
-    from custom_components.porkbun_ddns import async_remove_config_entry_device
-
-    assert await async_remove_config_entry_device(hass, entry, stale_device) is True
-
-
-async def test_cannot_remove_active_device(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
-    """Test that an active device cannot be removed."""
-    entry = make_entry(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-
-    dev_reg = dr.async_get(hass)
-    active_device = dev_reg.async_get_or_create(
-        config_entry_id=entry.entry_id,
-        identifiers={(DOMAIN, MOCK_DOMAIN)},
-        name=MOCK_DOMAIN,
-    )
-
-    from custom_components.porkbun_ddns import async_remove_config_entry_device
-
-    assert await async_remove_config_entry_device(hass, entry, active_device) is False
+    assert await async_remove_config_entry_device(hass, entry, device) is can_remove

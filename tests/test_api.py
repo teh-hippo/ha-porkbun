@@ -7,27 +7,32 @@ from unittest.mock import AsyncMock, MagicMock
 import aiohttp
 import pytest
 
-from custom_components.porkbun_ddns.api import (
-    PorkbunApiError,
-    PorkbunAuthError,
-    PorkbunClient,
-)
+from custom_components.porkbun_ddns.api import PorkbunApiError, PorkbunAuthError, PorkbunClient
 from custom_components.porkbun_ddns.const import API_REQUEST_TIMEOUT
 
 API_KEY = "pk1_test"
 SECRET_KEY = "sk1_test"
 
 
+BASE_RECORD = {
+    "id": "123",
+    "name": "example.com",
+    "type": "A",
+    "content": "1.2.3.4",
+    "ttl": "600",
+    "prio": "0",
+    "notes": "",
+}
+
+
 def _mock_response(payload: dict, status: int = 200) -> MagicMock:
-    """Create a mock aiohttp response."""
-    resp = MagicMock()
-    resp.status = status
-    resp.json = AsyncMock(return_value=payload)
-    return resp
+    response = MagicMock()
+    response.status = status
+    response.json = AsyncMock(return_value=payload)
+    return response
 
 
 def _make_session(response: MagicMock) -> MagicMock:
-    """Create a mock aiohttp session that returns response from post()."""
     session = MagicMock(spec=aiohttp.ClientSession)
     ctx = MagicMock()
     ctx.__aenter__ = AsyncMock(return_value=response)
@@ -41,138 +46,84 @@ def _client(session: MagicMock) -> PorkbunClient:
 
 
 async def test_ping_success() -> None:
-    """Test successful ping returns IP."""
-    resp = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
-    session = _make_session(resp)
-    ip = await _client(session).ping()
-    assert ip == "1.2.3.4"
+    session = _make_session(_mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"}))
+    assert await _client(session).ping() == "1.2.3.4"
 
 
 async def test_ping_auth_error() -> None:
-    """Test ping with invalid credentials raises PorkbunAuthError."""
-    resp = _mock_response({"status": "ERROR", "message": "Invalid API key"})
-    session = _make_session(resp)
+    session = _make_session(_mock_response({"status": "ERROR", "message": "Invalid API key"}))
     with pytest.raises(PorkbunAuthError, match="Invalid API key"):
         await _client(session).ping()
 
 
 async def test_ping_network_error() -> None:
-    """Test ping with network error raises ClientError."""
     session = MagicMock(spec=aiohttp.ClientSession)
     session.post.side_effect = aiohttp.ClientConnectionError("Connection refused")
     with pytest.raises(aiohttp.ClientConnectionError):
         await _client(session).ping()
 
 
-async def test_get_records_success() -> None:
-    """Test retrieving DNS records."""
-    resp = _mock_response(
-        {
-            "status": "SUCCESS",
-            "records": [
-                {
-                    "id": "123",
-                    "name": "example.com",
-                    "type": "A",
-                    "content": "1.2.3.4",
-                    "ttl": "600",
-                    "prio": "0",
-                    "notes": "",
-                }
-            ],
-        }
-    )
-    session = _make_session(resp)
-    records = await _client(session).get_records("example.com", "A")
-    assert len(records) == 1
-    assert records[0].content == "1.2.3.4"
-    assert records[0].record_type == "A"
+@pytest.mark.parametrize(
+    ("subdomain", "payload", "expected_count", "expected_name_contains"),
+    [
+        ("", {"status": "SUCCESS", "records": [BASE_RECORD]}, 1, "example.com"),
+        (
+            "www",
+            {
+                "status": "SUCCESS",
+                "records": [{**BASE_RECORD, "id": "456", "name": "www.example.com", "content": "5.6.7.8"}],
+            },
+            1,
+            "www.example.com",
+        ),
+        ("", {"status": "ERROR", "message": "No records found"}, 0, ""),
+    ],
+)
+async def test_get_records_paths(
+    subdomain: str,
+    payload: dict,
+    expected_count: int,
+    expected_name_contains: str,
+) -> None:
+    session = _make_session(_mock_response(payload))
+    records = await _client(session).get_records("example.com", "A", subdomain)
+
+    assert len(records) == expected_count
+    if records:
+        assert expected_name_contains in records[0].name
+        assert records[0].record_type == "A"
 
 
-async def test_get_records_with_subdomain() -> None:
-    """Test retrieving DNS records for a subdomain."""
-    resp = _mock_response(
-        {
-            "status": "SUCCESS",
-            "records": [
-                {
-                    "id": "456",
-                    "name": "www.example.com",
-                    "type": "A",
-                    "content": "5.6.7.8",
-                    "ttl": "600",
-                    "prio": "0",
-                    "notes": "",
-                }
-            ],
-        }
-    )
-    session = _make_session(resp)
-    records = await _client(session).get_records("example.com", "A", "www")
-    assert len(records) == 1
-    assert records[0].name == "www.example.com"
-    call_url = session.post.call_args[0][0]
-    assert "/www" in call_url
+@pytest.mark.parametrize("subdomain", ["", "www"])
+async def test_create_record_paths(subdomain: str) -> None:
+    session = _make_session(_mock_response({"status": "SUCCESS", "id": "789"}))
+
+    assert await _client(session).create_record("example.com", "A", "1.2.3.4", subdomain) == "789"
+    payload = session.post.call_args.kwargs["json"]
+    assert payload.get("name", "") == subdomain
 
 
-async def test_get_records_empty() -> None:
-    """Test retrieving records when none exist returns empty list."""
-    resp = _mock_response({"status": "ERROR", "message": "No records found"})
-    session = _make_session(resp)
-    records = await _client(session).get_records("example.com", "A")
-    assert records == []
+@pytest.mark.parametrize("subdomain", ["", "www"])
+async def test_edit_record_paths(subdomain: str) -> None:
+    session = _make_session(_mock_response({"status": "SUCCESS"}))
 
-
-async def test_create_record() -> None:
-    """Test creating a DNS record."""
-    resp = _mock_response({"status": "SUCCESS", "id": "789"})
-    session = _make_session(resp)
-    record_id = await _client(session).create_record("example.com", "A", "1.2.3.4")
-    assert record_id == "789"
-
-
-async def test_create_record_with_subdomain() -> None:
-    """Test creating a DNS record for a subdomain."""
-    resp = _mock_response({"status": "SUCCESS", "id": "790"})
-    session = _make_session(resp)
-    record_id = await _client(session).create_record("example.com", "A", "1.2.3.4", "www")
-    assert record_id == "790"
-    call_kwargs = session.post.call_args[1]
-    assert call_kwargs["json"]["name"] == "www"
-
-
-async def test_edit_record_by_name_type() -> None:
-    """Test editing a DNS record by name and type."""
-    resp = _mock_response({"status": "SUCCESS"})
-    session = _make_session(resp)
-    await _client(session).edit_record_by_name_type("example.com", "A", "5.6.7.8")
-    call_url = session.post.call_args[0][0]
-    assert "editByNameType/example.com/A" in call_url
-
-
-async def test_edit_record_with_subdomain() -> None:
-    """Test editing a DNS record for a subdomain."""
-    resp = _mock_response({"status": "SUCCESS"})
-    session = _make_session(resp)
-    await _client(session).edit_record_by_name_type("example.com", "A", "5.6.7.8", "www")
-    call_url = session.post.call_args[0][0]
-    assert "editByNameType/example.com/A/www" in call_url
+    await _client(session).edit_record_by_name_type("example.com", "A", "5.6.7.8", subdomain)
+    url = session.post.call_args.args[0]
+    expected_suffix = "editByNameType/example.com/A" + (f"/{subdomain}" if subdomain else "")
+    assert expected_suffix in url
 
 
 async def test_api_error() -> None:
-    """Test generic API error raises PorkbunApiError."""
-    resp = _mock_response({"status": "ERROR", "message": "Something went wrong"})
-    session = _make_session(resp)
+    session = _make_session(_mock_response({"status": "ERROR", "message": "Something went wrong"}))
     with pytest.raises(PorkbunApiError, match="Something went wrong"):
         await _client(session).create_record("example.com", "A", "1.2.3.4")
 
 
-async def test_get_domain_info_found() -> None:
-    """Test getting domain info when domain is in the list."""
-    resp = _mock_response(
-        {
-            "status": "SUCCESS",
-            "domains": [
+@pytest.mark.parametrize(
+    ("domains", "expected_found"),
+    [
+        (
+            [
                 {
                     "domain": "example.com",
                     "status": "ACTIVE",
@@ -181,24 +132,10 @@ async def test_get_domain_info_found() -> None:
                     "autoRenew": "1",
                 }
             ],
-        }
-    )
-    session = _make_session(resp)
-    info = await _client(session).get_domain_info("example.com")
-    assert info is not None
-    assert info.domain == "example.com"
-    assert info.status == "ACTIVE"
-    assert info.expire_date == "2026-02-18 23:59:59"
-    assert info.whois_privacy is True
-    assert info.auto_renew is True
-
-
-async def test_get_domain_info_not_found() -> None:
-    """Test getting domain info when domain is not in the list."""
-    resp = _mock_response(
-        {
-            "status": "SUCCESS",
-            "domains": [
+            True,
+        ),
+        (
+            [
                 {
                     "domain": "other.com",
                     "status": "ACTIVE",
@@ -207,28 +144,33 @@ async def test_get_domain_info_not_found() -> None:
                     "autoRenew": "0",
                 }
             ],
-        }
-    )
-    session = _make_session(resp)
+            False,
+        ),
+    ],
+)
+async def test_get_domain_info(domains: list[dict[str, str]], expected_found: bool) -> None:
+    session = _make_session(_mock_response({"status": "SUCCESS", "domains": domains}))
     info = await _client(session).get_domain_info("example.com")
-    assert info is None
+
+    assert (info is not None) is expected_found
+    if info:
+        assert info.domain == "example.com"
+        assert info.status == "ACTIVE"
+        assert info.expire_date == "2026-02-18 23:59:59"
+        assert info.whois_privacy is True
+        assert info.auto_renew is True
 
 
 async def test_request_passes_timeout() -> None:
-    """Test that _request passes a timeout to the session post call."""
-    resp = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
-    session = _make_session(resp)
+    session = _make_session(_mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"}))
     await _client(session).ping()
 
-    _, kwargs = session.post.call_args
-    timeout = kwargs.get("timeout")
-    assert timeout is not None
+    timeout = session.post.call_args.kwargs.get("timeout")
     assert isinstance(timeout, aiohttp.ClientTimeout)
     assert timeout.total == API_REQUEST_TIMEOUT
 
 
 async def test_request_timeout_raises_update_failed() -> None:
-    """Test that a TimeoutError from the session propagates correctly."""
     session = MagicMock(spec=aiohttp.ClientSession)
     ctx = MagicMock()
     ctx.__aenter__ = AsyncMock(side_effect=TimeoutError())
