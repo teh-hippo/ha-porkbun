@@ -176,6 +176,25 @@ async def test_next_update_sensor_value(hass: HomeAssistant, mock_porkbun_client
     assert state.state != "unavailable"
 
 
+async def test_next_update_sensor_refreshing_when_overdue(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test that the next update sensor shows 'Refreshing' when the scheduled time has passed."""
+    from datetime import UTC, timedelta
+
+    entry = _make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = entry.runtime_data
+    coordinator.data.last_updated = coordinator.data.last_updated - timedelta(hours=1)
+    coordinator.async_set_updated_data(coordinator.data)
+    await hass.async_block_till_done()
+
+    state = hass.states.get(_get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_next_update"))
+    assert state is not None
+    assert state.state == "Refreshing"
+
+
 async def test_domain_expiry_sensor_value(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     """Test domain expiry sensor returns parsed datetime when enabled."""
     mock_porkbun_client.get_domain_info.return_value = DomainInfo(

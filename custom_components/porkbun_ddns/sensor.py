@@ -133,7 +133,6 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
     """Device-level sensor showing when the next update check is scheduled."""
 
     _attr_has_entity_name = True
-    _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(
         self,
@@ -147,14 +146,17 @@ class DdnsNextUpdateSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEnti
         self._attr_device_info = device_info(domain_name)
 
     @property
-    def native_value(self) -> datetime | None:
-        """Return the next scheduled update timestamp."""
+    def native_value(self) -> datetime | str | None:
+        """Return the next scheduled update timestamp, or 'Refreshing' when overdue."""
         if not self.coordinator.data.last_updated:
             return None
         interval = self.coordinator.update_interval
         if interval is None:
             return None
-        return self.coordinator.data.last_updated + interval
+        next_update = self.coordinator.data.last_updated + interval
+        if next_update <= datetime.now(tz=UTC):
+            return "Refreshing"
+        return next_update
 
 
 class DdnsDomainExpirySensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
