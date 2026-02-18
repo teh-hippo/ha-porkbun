@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock
 
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.porkbun_ddns.api import DomainInfo
 from custom_components.porkbun_ddns.const import (
@@ -14,7 +17,7 @@ from custom_components.porkbun_ddns.const import (
     DOMAIN,
 )
 
-from .conftest import MOCK_DOMAIN, get_entity_id, make_entry
+from .conftest import MOCK_DOMAIN, MOCK_IPV4, get_entity_id, make_entry
 
 
 @pytest.fixture(autouse=True)
@@ -156,6 +159,50 @@ async def test_next_update_sensor_refreshing_when_overdue(hass: HomeAssistant, m
     state = hass.states.get(get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_next_update"))
     assert state is not None
     assert state.state not in {"unknown", "unavailable", "Refreshing"}
+
+
+async def test_timestamp_sensor_values_with_frozen_time(
+    hass: HomeAssistant, mock_porkbun_client: AsyncMock, freezer
+) -> None:
+    """Test exact values for last_updated and next_update sensors."""
+    freezer.move_to("2026-02-18 12:00:00+00:00")
+    entry = make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    expected_last = datetime(2026, 2, 18, 12, 0, 0, tzinfo=UTC)
+    expected_next = expected_last + timedelta(seconds=300)
+
+    last_state = hass.states.get(get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_last_updated"))
+    next_state = hass.states.get(get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_next_update"))
+    assert last_state is not None
+    assert next_state is not None
+    assert datetime.fromisoformat(last_state.state) == expected_last
+    assert datetime.fromisoformat(next_state.state) == expected_next
+
+
+async def test_entities_unavailable_after_failed_scheduled_poll(
+    hass: HomeAssistant, mock_porkbun_client: AsyncMock
+) -> None:
+    """Test coordinator entities become unavailable after scheduled poll failure."""
+    mock_porkbun_client.ping.side_effect = [MOCK_IPV4, TimeoutError(), TimeoutError()]
+    entry = make_entry(hass)
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    last_updated_id = get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_last_updated")
+    initial_state = hass.states.get(last_updated_id)
+    assert initial_state is not None
+    assert initial_state.state != "unavailable"
+
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=301))
+    await hass.async_block_till_done()
+
+    updated_state = hass.states.get(last_updated_id)
+    assert updated_state is not None
+    assert updated_state.state == "unavailable"
 
 
 async def test_domain_expiry_sensor_value(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:

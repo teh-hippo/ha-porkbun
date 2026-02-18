@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.porkbun_ddns.api import PorkbunAuthError
+from custom_components.porkbun_ddns.config_flow import _parse_subdomains
 from custom_components.porkbun_ddns.const import (
     CONF_API_KEY,
     CONF_DOMAIN,
@@ -42,6 +43,21 @@ def mock_ping():
         client.ping = AsyncMock(return_value=MOCK_IPV4)
         client.get_records = AsyncMock(return_value=[])
         yield client
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("", []),
+        ("www", ["www"]),
+        (" www, VPN ", ["www", "vpn"]),
+        ("a,, b, ,c", ["a", "b", "c"]),
+        (",, ,", []),
+    ],
+)
+def test_parse_subdomains_cases(raw: str, expected: list[str]) -> None:
+    """Test _parse_subdomains handles common edge cases."""
+    assert _parse_subdomains(raw) == expected
 
 
 # --- User step tests ---
@@ -402,6 +418,46 @@ async def test_options_flow(hass: HomeAssistant, mock_porkbun_client: AsyncMock)
     assert result["data"][CONF_UPDATE_INTERVAL] == 600
 
 
+async def test_options_flow_triggers_reload(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
+    """Test options flow automatically reloads the entry."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=MOCK_DOMAIN,
+        data={CONF_API_KEY: MOCK_API_KEY, CONF_SECRET_KEY: MOCK_SECRET_KEY, CONF_DOMAIN: MOCK_DOMAIN},
+        options={
+            CONF_SUBDOMAINS: ["www"],
+            CONF_IPV4: True,
+            CONF_IPV6: False,
+            CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+        },
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    previous_coordinator = entry.runtime_data
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            CONF_SUBDOMAINS: "www, api",
+            CONF_IPV4: True,
+            CONF_IPV6: True,
+            CONF_UPDATE_INTERVAL: 600,
+        },
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+
+    await hass.async_block_till_done()
+
+    assert entry.runtime_data is not previous_coordinator
+    assert entry.runtime_data.update_interval is not None
+    assert entry.runtime_data.update_interval.total_seconds() == 600
+
+
 # --- Reconfigure flow tests ---
 
 
@@ -441,3 +497,51 @@ async def test_reconfigure_flow(hass: HomeAssistant, mock_porkbun_client: AsyncM
 
         assert result["type"] is FlowResultType.ABORT
         assert result["reason"] == "reconfigure_successful"
+
+
+@pytest.mark.parametrize(
+    ("side_effect", "expected_error"),
+    [
+        (PorkbunAuthError("Not found"), "domain_not_found"),
+        (aiohttp.ClientConnectionError("Refused"), "cannot_connect"),
+        (RuntimeError("boom"), "unknown"),
+    ],
+)
+async def test_reconfigure_flow_errors(
+    hass: HomeAssistant, mock_porkbun_client: AsyncMock, side_effect: Exception, expected_error: str
+) -> None:
+    """Test reconfigure flow error handling paths."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id=MOCK_DOMAIN,
+        data={CONF_API_KEY: MOCK_API_KEY, CONF_SECRET_KEY: MOCK_SECRET_KEY, CONF_DOMAIN: MOCK_DOMAIN},
+        options={
+            CONF_SUBDOMAINS: ["www"],
+            CONF_IPV4: True,
+            CONF_IPV6: False,
+            CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+        },
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    with patch(
+        "custom_components.porkbun_ddns.config_flow.PorkbunClient",
+        autospec=True,
+    ) as mock_cls:
+        mock_cls.return_value.get_records = AsyncMock(side_effect=side_effect)
+
+        result = await entry.start_reconfigure_flow(hass)
+        assert result["type"] is FlowResultType.FORM
+        assert result["step_id"] == "reconfigure"
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_DOMAIN: MOCK_DOMAIN, CONF_SUBDOMAINS: "www, api", CONF_IPV4: True, CONF_IPV6: True},
+        )
+
+        assert result["type"] is FlowResultType.FORM
+        assert result["errors"] == {"base": expected_error}
