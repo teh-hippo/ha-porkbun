@@ -173,6 +173,28 @@ pytest tests/ -v
 ruff check . && ruff format --check .
 ```
 
+### Type check
+
+```bash
+mypy custom_components/porkbun_ddns
+```
+
+### CI parity checklist (run before push)
+
+```bash
+ruff check .
+ruff format --check .
+mypy custom_components/porkbun_ddns
+pytest tests/ -v
+```
+
+### Pre-commit (recommended)
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
 ### Commits
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automatic semantic versioning:

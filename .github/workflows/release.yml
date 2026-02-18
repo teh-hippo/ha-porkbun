@@ -30,9 +30,25 @@ jobs:
           commit: "false"
           changelog: "false"
 
+      - name: Prepare HACS release ZIP
+        if: steps.release.outputs.released == 'true'
+        run: |
+          VERSION="${{ steps.release.outputs.version }}"
+          jq --arg v "$VERSION" '.version = $v' custom_components/porkbun_ddns/manifest.json > /tmp/manifest.json
+          mv /tmp/manifest.json custom_components/porkbun_ddns/manifest.json
+          cd custom_components/porkbun_ddns
+          zip -r porkbun_ddns.zip ./*
+
       - name: Publish GitHub Release
         uses: python-semantic-release/publish-action@v10
         if: steps.release.outputs.released == 'true'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
+
+      - name: Upload HACS ZIP asset
+        if: steps.release.outputs.released == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release.outputs.tag }}
+          files: custom_components/porkbun_ddns/porkbun_ddns.zip
