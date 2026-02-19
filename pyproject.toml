@@ -3,7 +3,7 @@ name = "ha-porkbun"
 version = "1.2.8"
 description = "Home Assistant integration for Porkbun DDNS"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.12"
 
 [tool.pytest.ini_options]
