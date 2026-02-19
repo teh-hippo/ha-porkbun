@@ -2,8 +2,8 @@
 
 [![HACS][hacs-badge]][hacs-url]
 [![GitHub Release][release-badge]][release-url]
-[![License][license-badge]][license-url]
 [![Validate][validate-badge]][validate-url]
+[![Home Assistant][ha-badge]][ha-url]
 
 Home Assistant custom integration for [Porkbun](https://porkbun.com) Dynamic DNS.
 It keeps A/AAAA DNS records synced with your public IP.
@@ -83,7 +83,7 @@ Requires [uv](https://docs.astral.sh/uv/). Uses [Conventional Commits](https://w
 [hacs-url]: https://github.com/hacs/integration
 [release-badge]: https://img.shields.io/github/v/release/teh-hippo/ha-porkbun
 [release-url]: https://github.com/teh-hippo/ha-porkbun/releases
-[license-badge]: https://img.shields.io/github/license/teh-hippo/ha-porkbun
-[license-url]: https://github.com/teh-hippo/ha-porkbun/blob/master/LICENSE
 [validate-badge]: https://img.shields.io/github/actions/workflow/status/teh-hippo/ha-porkbun/validate.yml?branch=master&label=validate
 [validate-url]: https://github.com/teh-hippo/ha-porkbun/actions/workflows/validate.yml
+[ha-badge]: https://img.shields.io/badge/HA-2026.2%2B-blue.svg
+[ha-url]: https://www.home-assistant.io
