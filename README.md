@@ -22,7 +22,7 @@ It keeps A/AAAA DNS records synced with your public IP.
 2. Domain API access enabled
 3. Porkbun API key + secret from [porkbun.com/account/api](https://porkbun.com/account/api)
 
-## Install
+## Installation
 
 ### HACS (recommended)
 
@@ -36,7 +36,7 @@ It keeps A/AAAA DNS records synced with your public IP.
 1. Copy `custom_components/porkbun_ddns` to `<config>/custom_components/`
 2. Restart Home Assistant
 
-## Configure
+## Configuration
 
 Home Assistant → **Settings** → **Devices & Services** → **Add Integration** → **Porkbun DDNS**.
 
