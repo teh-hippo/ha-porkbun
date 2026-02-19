@@ -26,7 +26,6 @@ jobs:
       - uses: astral-sh/setup-uv@v6
 
       - name: Python Semantic Release
-        id: release
         uses: python-semantic-release/python-semantic-release@v10
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
