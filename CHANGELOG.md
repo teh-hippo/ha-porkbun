@@ -1,6 +1,52 @@
 # CHANGELOG
 
 
+## v1.3.0 (2026-02-19)
+
+### Chores
+
+- Track uv lockfile
+  ([`b9ffb87`](https://github.com/teh-hippo/ha-porkbun/commit/b9ffb875bbe1ff772d8c27768276b2cfb4284ae1))
+
+### Continuous Integration
+
+- Minimal 4-line .gitignore
+  ([`ec2ddad`](https://github.com/teh-hippo/ha-porkbun/commit/ec2ddad1d787444e0b5fb1643a4f655080e45c0a))
+
+- Remove uv.lock from gitignore, clean up redundant mypy settings
+  ([`a6472a3`](https://github.com/teh-hippo/ha-porkbun/commit/a6472a33bfa46a736057ef23fb983790286e5650))
+
+### Documentation
+
+- Standardize section naming
+  ([`92ca768`](https://github.com/teh-hippo/ha-porkbun/commit/92ca76894973146e57c0ca8205e26b32fd299b7c))
+
+- Standardize status badge set
+  ([`1171189`](https://github.com/teh-hippo/ha-porkbun/commit/1171189a09cbd0d9939bbc832db9a1f2c232ee1d))
+
+### Features
+
+- Add quality scale declaration
+  ([`74eeb32`](https://github.com/teh-hippo/ha-porkbun/commit/74eeb326231ed5adb327286aff7944ec9254f061))
+
+### Refactoring
+
+- Add coverage config section
+  ([`c01f835`](https://github.com/teh-hippo/ha-porkbun/commit/c01f835cdc93356ec616c700cac97f47d00edb43))
+
+- Remove empty manifest requirements
+  ([`731cb23`](https://github.com/teh-hippo/ha-porkbun/commit/731cb235b539fa14e0f9a3075b4c20c48db29190))
+
+- Remove zip release packaging
+  ([`110ec5c`](https://github.com/teh-hippo/ha-porkbun/commit/110ec5cecbeee4e063800e914457d30a83fd8422))
+
+- Simplify hacs metadata
+  ([`d13e361`](https://github.com/teh-hippo/ha-porkbun/commit/d13e361198fd154726122224a9eeedb0ac8afe72))
+
+- Use SPDX license string
+  ([`3a7eaa2`](https://github.com/teh-hippo/ha-porkbun/commit/3a7eaa281d9964d234c2dcabbd96b43a42799650))
+
+
 ## v1.2.8 (2026-02-18)
 
 ### Bug Fixes
