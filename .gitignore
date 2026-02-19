@@ -33,4 +33,3 @@ htmlcov/
 
 # Home Assistant
 config/
-uv.lock
