@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v1.3.1 (2026-02-21)
+
+### Bug Fixes
+
+- **ci**: Detect Copilot review outcome via body text, not review state
+  ([`fa31ba2`](https://github.com/teh-hippo/ha-porkbun/commit/fa31ba2fa03ce68242456e03a6a42b7d31f0de39))
+
+### Continuous Integration
+
+- Add copilot/dependabot push triggers, concurrency, devcontainer, and auto-merge flow
+  ([`2b97cc5`](https://github.com/teh-hippo/ha-porkbun/commit/2b97cc51b70bf6e5f887d878ac10fdbccf789580))
+
+- Remove unused semantic-release step id
+  ([`260f057`](https://github.com/teh-hippo/ha-porkbun/commit/260f05700fdfaaf70c82e277fad482e21414777c))
+
+
 ## v1.3.0 (2026-02-19)
 
 ### Chores
