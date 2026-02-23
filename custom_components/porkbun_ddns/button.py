@@ -21,8 +21,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Porkbun DDNS buttons from a config entry."""
     coordinator = entry.runtime_data
-    domain_name = coordinator.domain
-    async_add_entities([DdnsForceUpdateButton(coordinator, domain_name)])
+    async_add_entities([DdnsForceUpdateButton(coordinator)])
 
 
 class DdnsForceUpdateButton(CoordinatorEntity[PorkbunDdnsCoordinator], ButtonEntity):
@@ -35,11 +34,10 @@ class DdnsForceUpdateButton(CoordinatorEntity[PorkbunDdnsCoordinator], ButtonEnt
     def __init__(
         self,
         coordinator: PorkbunDdnsCoordinator,
-        domain_name: str,
     ) -> None:
         """Initialize the button."""
         super().__init__(coordinator)
-        self._attr_unique_id = f"{domain_name}_force_update"
+        self._attr_unique_id = f"{coordinator.domain}_force_update"
         self._attr_device_info = coordinator.device_info
 
     async def async_press(self) -> None:
