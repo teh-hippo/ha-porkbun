@@ -56,14 +56,10 @@ class PorkbunClient:
         self._secret_key = secret_key
         self._api_base = api_base.rstrip("/")
 
-    def _auth_body(self) -> dict[str, str]:
-        """Return the authentication payload."""
-        return {"apikey": self._api_key, "secretapikey": self._secret_key}
-
     async def _request(self, endpoint: str, extra: dict[str, Any] | None = None) -> dict[str, Any]:
         """Make a POST request to the Porkbun API."""
         url = f"{self._api_base}/{endpoint.lstrip('/')}"
-        payload = self._auth_body()
+        payload = {"apikey": self._api_key, "secretapikey": self._secret_key}
         if extra:
             payload.update(extra)
 
@@ -74,28 +70,24 @@ class PorkbunClient:
             data: dict[str, Any] = await resp.json(content_type=None)
             LOGGER.debug("Porkbun API response: %s %s", resp.status, data.get("status"))
 
-            if resp.status == 403 or data.get("status") == "ERROR":
-                msg = data.get("message", "Unknown API error")
-                if "Invalid API key" in msg or "invalid" in msg.lower():
+            status = data.get("status")
+            if resp.status == 403 or status != "SUCCESS":
+                msg = data.get("message") or (
+                    "Unknown API error" if resp.status == 403 or status == "ERROR" else f"Unexpected status: {status}"
+                )
+                if "invalid api key" in msg.lower() or "invalid" in msg.lower():
                     raise PorkbunAuthError(msg)
                 raise PorkbunApiError(msg)
-
-            if data.get("status") != "SUCCESS":
-                raise PorkbunApiError(data.get("message", f"Unexpected status: {data.get('status')}"))
 
             return data
 
     async def ping(self) -> str:
         """Validate credentials and return the caller's public IPv4 address."""
-        data = await self._request("ping")
-        your_ip: str = data["yourIp"]
-        return your_ip
+        return str((await self._request("ping"))["yourIp"])
 
     async def get_records(self, domain: str, record_type: str, subdomain: str = "") -> list[DnsRecord]:
         """Retrieve DNS records by domain, type, and optional subdomain."""
-        endpoint = f"dns/retrieveByNameType/{domain}/{record_type}"
-        if subdomain:
-            endpoint += f"/{subdomain}"
+        endpoint = f"dns/retrieveByNameType/{domain}/{record_type}{f'/{subdomain}' if subdomain else ''}"
         try:
             data = await self._request(endpoint)
         except PorkbunApiError as err:
@@ -141,9 +133,7 @@ class PorkbunClient:
         ttl: int = 600,
     ) -> None:
         """Edit DNS records matching domain, type, and optional subdomain."""
-        endpoint = f"dns/editByNameType/{domain}/{record_type}"
-        if subdomain:
-            endpoint += f"/{subdomain}"
+        endpoint = f"dns/editByNameType/{domain}/{record_type}{f'/{subdomain}' if subdomain else ''}"
         extra: dict[str, Any] = {"content": content, "ttl": str(ttl)}
         await self._request(endpoint, extra)
 
