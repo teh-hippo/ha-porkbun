@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from functools import cached_property
@@ -65,8 +66,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
         self._domain = str(config_entry.data[CONF_DOMAIN])
-        self._api_key = str(config_entry.data[CONF_API_KEY])
-        self._secret_key = str(config_entry.data[CONF_SECRET_KEY])
 
         interval = int(config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
 
@@ -79,7 +78,11 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             always_update=True,
         )
         self.data = DdnsData()
-        self._client = PorkbunClient(async_get_clientsession(hass), self._api_key, self._secret_key)
+        self._client = PorkbunClient(
+            async_get_clientsession(hass),
+            str(config_entry.data[CONF_API_KEY]),
+            str(config_entry.data[CONF_SECRET_KEY]),
+        )
 
     @property
     def domain(self) -> str:
@@ -139,47 +142,33 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     async def _async_update_data(self) -> DdnsData:
         """Fetch current IP and update DNS records if needed."""
         data = self.data
+        issue_id = f"api_access_{self._domain}"
         try:
-            session = async_get_clientsession(self.hass)
-            client = self._client
-
             # Get current public IPs
             if self.ipv4_enabled:
-                data.public_ipv4 = await client.ping()
+                data.public_ipv4 = await self._client.ping()
                 LOGGER.debug("Current public IPv4: %s", data.public_ipv4)
 
             if self.ipv6_enabled:
-                data.public_ipv6 = await self._get_ipv6(session)
+                data.public_ipv6 = await self._get_ipv6(async_get_clientsession(self.hass))
                 LOGGER.debug("Current public IPv6: %s", data.public_ipv6)
 
-            # Update records for root domain + each subdomain
-            targets = [""] + self.subdomains
-            for subdomain in targets:
-                if self.ipv4_enabled and data.public_ipv4:
-                    await self._update_record(
-                        client,
-                        data,
-                        subdomain,
-                        "A",
-                        data.public_ipv4,
-                    )
-                if self.ipv6_enabled and data.public_ipv6:
-                    await self._update_record(
-                        client,
-                        data,
-                        subdomain,
-                        "AAAA",
-                        data.public_ipv6,
-                    )
+            updates: list[tuple[str, str]] = []
+            if self.ipv4_enabled and data.public_ipv4:
+                updates.append(("A", data.public_ipv4))
+            if self.ipv6_enabled and data.public_ipv6:
+                updates.append(("AAAA", data.public_ipv6))
+
+            for subdomain in ["", *self.subdomains]:
+                for record_type, ip in updates:
+                    await self._update_record(subdomain, record_type, ip)
 
             # Fetch domain registration info (non-critical, don't fail on error)
-            try:
-                data.domain_info = await client.get_domain_info(self._domain)
-            except (PorkbunApiError, aiohttp.ClientError, TimeoutError):
-                LOGGER.debug("Failed to fetch domain info for %s", self._domain)
+            with suppress(PorkbunApiError, aiohttp.ClientError, TimeoutError):
+                data.domain_info = await self._client.get_domain_info(self._domain)
 
             data.last_updated = datetime.now(tz=UTC)
-            ir.async_delete_issue(self.hass, DOMAIN, f"api_access_{self._domain}")
+            ir.async_delete_issue(self.hass, DOMAIN, issue_id)
             return data
 
         except PorkbunAuthError as err:
@@ -196,7 +185,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                 ir.async_create_issue(
                     self.hass,
                     DOMAIN,
-                    f"api_access_{self._domain}",
+                    issue_id,
                     is_fixable=False,
                     is_persistent=False,
                     severity=ir.IssueSeverity.ERROR,
@@ -211,19 +200,18 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
 
     async def _update_record(
         self,
-        client: PorkbunClient,
-        data: DdnsData,
         subdomain: str,
         record_type: str,
         target_ip: str,
     ) -> None:
         """Check and update a single DNS record if the IP has changed."""
+        data = self.data
         key = _record_key(subdomain, record_type)
-        state = data.records.get(key, RecordState())
+        state = data.records.setdefault(key, RecordState())
         label = f"{subdomain}.{self._domain}" if subdomain else self._domain
 
         try:
-            existing = await client.get_records(self._domain, record_type, subdomain)
+            existing = await self._client.get_records(self._domain, record_type, subdomain)
             current_ip = existing[0].content if existing else None
 
             if current_ip == target_ip:
@@ -231,16 +219,17 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                 state.current_ip = current_ip
                 state.ok = True
                 state.error = None
-                data.records[key] = state
                 return
 
             # IP differs — update or create
             if existing:
                 LOGGER.info("Updating %s %s record: %s → %s", label, record_type, current_ip, target_ip)
-                await client.edit_record_by_name_type(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
+                await self._client.edit_record_by_name_type(
+                    self._domain, record_type, target_ip, subdomain, DEFAULT_TTL
+                )
             else:
                 LOGGER.info("Creating %s %s record: %s", label, record_type, target_ip)
-                await client.create_record(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
+                await self._client.create_record(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
 
             state.current_ip = target_ip
             state.ok = True
@@ -249,8 +238,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             LOGGER.warning("Failed to update %s %s: %s", label, record_type, err)
             state.ok = False
             state.error = str(err)
-
-        data.records[key] = state
 
     async def _get_ipv6(self, session: aiohttp.ClientSession) -> str | None:
         """Detect public IPv6 address via external service."""
