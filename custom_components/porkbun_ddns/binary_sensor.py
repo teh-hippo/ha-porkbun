@@ -17,39 +17,22 @@ from .coordinator import PorkbunDdnsCoordinator
 PARALLEL_UPDATES = 0
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: PorkbunDdnsConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up Porkbun DDNS binary sensors from a config entry."""
-    coordinator = entry.runtime_data
-    domain_name = coordinator.domain
+class _DdnsBinarySensorBase(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEntity):
+    _attr_has_entity_name = True
+    _unique_id_suffix: str
 
-    entities: list[BinarySensorEntity] = [
-        DdnsHealthSensor(coordinator, domain_name),
-        DdnsWhoisPrivacySensor(coordinator, domain_name),
-    ]
-
-    async_add_entities(entities)
+    def __init__(self, coordinator: PorkbunDdnsCoordinator, domain_name: str) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{domain_name}_{self._unique_id_suffix}"
+        self._attr_device_info = coordinator.device_info
 
 
-class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEntity):
+class DdnsHealthSensor(_DdnsBinarySensorBase):
     """Binary sensor showing DDNS health status (problem class: off = healthy ✅)."""
 
-    _attr_has_entity_name = True
+    _unique_id_suffix = "health"
     _attr_translation_key = "dns_status"
     _attr_device_class = BinarySensorDeviceClass.PROBLEM
-
-    def __init__(
-        self,
-        coordinator: PorkbunDdnsCoordinator,
-        domain_name: str,
-    ) -> None:
-        """Initialize the health sensor."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{domain_name}_health"
-        self._attr_device_info = coordinator.device_info
 
     @property
     def is_on(self) -> bool | None:
@@ -64,10 +47,9 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
         coord = self.coordinator
         total = coord.record_count
         ok = coord.ok_count
-        targets = ["@"] + coord.subdomains
         attrs: dict[str, str | list[str]] = {
             "summary": f"{ok}/{total} OK",
-            "managed_subdomains": targets,
+            "managed_subdomains": ["@"] + coord.subdomains,
         }
 
         if coord.data.records:
@@ -83,27 +65,34 @@ class DdnsHealthSensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEn
         return attrs
 
 
-class DdnsWhoisPrivacySensor(CoordinatorEntity[PorkbunDdnsCoordinator], BinarySensorEntity):
+class DdnsWhoisPrivacySensor(_DdnsBinarySensorBase):
     """Binary sensor showing WHOIS privacy status."""
 
-    _attr_has_entity_name = True
+    _unique_id_suffix = "whois_privacy"
     _attr_translation_key = "whois_privacy"
     _attr_entity_registry_enabled_default = False
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
-    def __init__(
-        self,
-        coordinator: PorkbunDdnsCoordinator,
-        domain_name: str,
-    ) -> None:
-        """Initialize the WHOIS privacy sensor."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{domain_name}_whois_privacy"
-        self._attr_device_info = coordinator.device_info
-
     @property
     def is_on(self) -> bool | None:
         """Return True if WHOIS privacy is enabled."""
-        if not self.coordinator.data.domain_info:
+        if (info := self.coordinator.data.domain_info) is None:
             return None
-        return self.coordinator.data.domain_info.whois_privacy
+        return info.whois_privacy
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: PorkbunDdnsConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Porkbun DDNS binary sensors from a config entry."""
+    coordinator = entry.runtime_data
+    domain_name = coordinator.domain
+
+    async_add_entities(
+        [
+            DdnsHealthSensor(coordinator, domain_name),
+            DdnsWhoisPrivacySensor(coordinator, domain_name),
+        ]
+    )
