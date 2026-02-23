@@ -21,12 +21,6 @@ async def async_get_config_entry_diagnostics(
     coordinator = entry.runtime_data
     data = coordinator.data
 
-    records = {key: asdict(state) for key, state in data.records.items()}
-
-    domain_info: dict[str, Any] | None = None
-    if data.domain_info:
-        domain_info = asdict(data.domain_info)
-
     return {
         "config": async_redact_data(dict(entry.data), REDACT_KEYS),
         "options": dict(entry.options),
@@ -40,7 +34,7 @@ async def async_get_config_entry_diagnostics(
             "public_ipv4": data.public_ipv4,
             "public_ipv6": data.public_ipv6,
             "last_updated": str(data.last_updated) if data.last_updated else None,
-            "records": records,
-            "domain_info": domain_info,
+            "records": {key: asdict(state) for key, state in data.records.items()},
+            "domain_info": asdict(data.domain_info) if data.domain_info else None,
         },
     }
