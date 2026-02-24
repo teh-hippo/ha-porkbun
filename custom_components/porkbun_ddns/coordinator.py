@@ -33,6 +33,11 @@ from .const import (
 )
 
 
+def _error_text(err: Exception) -> str:
+    """Return a useful error string even for exceptions with an empty message."""
+    return str(err) or type(err).__name__
+
+
 @dataclass
 class RecordState:
     """State for a single DNS record (subdomain + type)."""
@@ -177,10 +182,11 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                 translation_key="auth_failed",
             ) from err
         except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
+            err_text = _error_text(err)
             # Domain-level failure (e.g. ping failed) — mark all records as failed
             for state in data.records.values():
                 state.ok = False
-                state.error = str(err)
+                state.error = err_text
             if isinstance(err, PorkbunApiError):
                 ir.async_create_issue(
                     self.hass,
@@ -195,7 +201,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             raise UpdateFailed(
                 translation_domain=DOMAIN,
                 translation_key="update_failed",
-                translation_placeholders={"domain": self._domain, "error": str(err)},
+                translation_placeholders={"domain": self._domain, "error": err_text},
             ) from err
 
     async def _update_record(
@@ -235,9 +241,10 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             state.ok = True
             state.error = None
         except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
-            LOGGER.warning("Failed to update %s %s: %s", label, record_type, err)
+            err_text = _error_text(err)
+            LOGGER.warning("Failed to update %s %s: %s", label, record_type, err_text)
             state.ok = False
-            state.error = str(err)
+            state.error = err_text
 
     async def _get_ipv6(self, session: aiohttp.ClientSession) -> str | None:
         """Detect public IPv6 address via external service."""

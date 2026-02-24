@@ -66,6 +66,20 @@ async def test_coordinator_error_handling(
         await PorkbunDdnsCoordinator(hass, make_entry(hass))._async_update_data()
 
 
+async def test_coordinator_updatefailed_includes_error_for_empty_exception_message(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    """Ensure UpdateFailed has a useful error placeholder when str(exception) is empty."""
+    mock_porkbun_client.ping.side_effect = TimeoutError()
+
+    with pytest.raises(UpdateFailed) as exc:
+        await PorkbunDdnsCoordinator(hass, make_entry(hass))._async_update_data()
+
+    placeholders = getattr(exc.value, "translation_placeholders", None) or {}
+    assert placeholders.get("error") == "TimeoutError"
+
+
 async def test_coordinator_subdomains_and_counters(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass, **{CONF_SUBDOMAINS: ["www", "vpn"]}))
 
