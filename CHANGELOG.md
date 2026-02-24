@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.4.0 (2026-02-24)
+
+### Features
+
+- **porkbun_ddns**: Add startup delay option
+  ([`bcd3da0`](https://github.com/teh-hippo/ha-porkbun/commit/bcd3da055649be77716628ccc924514e5cc917ac))
+
+
 ## v1.3.2 (2026-02-24)
 
 ### Bug Fixes
