@@ -12,7 +12,7 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.porkbun_ddns.api import DnsRecord, PorkbunApiError, PorkbunAuthError
-from custom_components.porkbun_ddns.const import CONF_IPV6, CONF_SUBDOMAINS, DOMAIN
+from custom_components.porkbun_ddns.const import CONF_IPV6, CONF_STARTUP_DELAY, CONF_SUBDOMAINS, DOMAIN
 from custom_components.porkbun_ddns.coordinator import PorkbunDdnsCoordinator
 
 from .conftest import MOCK_DOMAIN, MOCK_IPV4, MOCK_IPV6, make_entry
@@ -78,6 +78,24 @@ async def test_coordinator_updatefailed_includes_error_for_empty_exception_messa
 
     placeholders = getattr(exc.value, "translation_placeholders", None) or {}
     assert placeholders.get("error") == "TimeoutError"
+
+
+async def test_startup_delay_defers_first_update(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+    freezer,
+) -> None:
+    freezer.move_to("2026-02-18 12:00:00+00:00")
+    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass, **{CONF_STARTUP_DELAY: 300}))
+
+    data = await coordinator._async_update_data()
+    assert data.last_updated is None
+    assert mock_porkbun_client.ping.call_count == 0
+
+    freezer.move_to("2026-02-18 12:05:01+00:00")
+    data = await coordinator._async_update_data()
+    assert data.public_ipv4 == MOCK_IPV4
+    assert mock_porkbun_client.ping.call_count == 1
 
 
 async def test_coordinator_subdomains_and_counters(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:

@@ -18,8 +18,11 @@ from custom_components.porkbun_ddns.const import (
     CONF_IPV4,
     CONF_IPV6,
     CONF_SECRET_KEY,
+    CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DEFAULT_STARTUP_DELAY,
+    DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
 )
 
@@ -83,6 +86,8 @@ async def test_full_flow(hass: HomeAssistant) -> None:
     assert result["options"][CONF_SUBDOMAINS] == ["www", "vpn"]
     assert result["options"][CONF_IPV4] is True
     assert result["options"][CONF_IPV6] is False
+    assert result["options"][CONF_UPDATE_INTERVAL] == DEFAULT_UPDATE_INTERVAL
+    assert result["options"][CONF_STARTUP_DELAY] == DEFAULT_STARTUP_DELAY
 
 
 @pytest.mark.parametrize(
@@ -210,6 +215,7 @@ async def test_options_flow_updates_and_reloads(
             CONF_IPV4: True,
             CONF_IPV6: True,
             CONF_UPDATE_INTERVAL: 600,
+            CONF_STARTUP_DELAY: 300,
         },
     )
 
@@ -219,6 +225,7 @@ async def test_options_flow_updates_and_reloads(
         CONF_IPV4: True,
         CONF_IPV6: True,
         CONF_UPDATE_INTERVAL: 600,
+        CONF_STARTUP_DELAY: 300,
     }
 
     await hass.async_block_till_done()

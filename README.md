@@ -42,6 +42,7 @@ Home Assistant → **Settings** → **Devices & Services** → **Add Integration
 
 Options:
 - Update interval (default `300s`, minimum `60s`)
+- Startup delay (default `300s`)
 - Subdomains (comma-separated, e.g. `www, vpn`)
 - IPv4 / IPv6 toggles
 

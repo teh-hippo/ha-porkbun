@@ -26,8 +26,10 @@ from .const import (
     CONF_IPV4,
     CONF_IPV6,
     CONF_SECRET_KEY,
+    CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DEFAULT_STARTUP_DELAY,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
     LOGGER,
@@ -41,6 +43,7 @@ STEP_USER_SCHEMA = vol.Schema(
 )
 
 UPDATE_INTERVAL_SELECTOR = NumberSelector(NumberSelectorConfig(min=60, step=60, mode=NumberSelectorMode.BOX))
+STARTUP_DELAY_SELECTOR = NumberSelector(NumberSelectorConfig(min=0, step=60, mode=NumberSelectorMode.BOX))
 
 
 def _domain_schema(
@@ -68,6 +71,7 @@ def _options_from_input(user_input: dict[str, Any], *, include_interval: bool = 
     }
     if include_interval:
         options[CONF_UPDATE_INTERVAL] = int(user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
+        options[CONF_STARTUP_DELAY] = int(user_input.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY))
     return options
 
 
@@ -233,6 +237,10 @@ class PorkbunDdnsOptionsFlow(OptionsFlowWithReload):
                         CONF_UPDATE_INTERVAL,
                         default=current.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
                     ): UPDATE_INTERVAL_SELECTOR,
+                    vol.Optional(
+                        CONF_STARTUP_DELAY,
+                        default=current.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY),
+                    ): STARTUP_DELAY_SELECTOR,
                     vol.Optional(
                         CONF_SUBDOMAINS,
                         default=", ".join(current.get(CONF_SUBDOMAINS, [])),

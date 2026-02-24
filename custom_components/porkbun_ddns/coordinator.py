@@ -23,8 +23,10 @@ from .const import (
     CONF_IPV4,
     CONF_IPV6,
     CONF_SECRET_KEY,
+    CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DEFAULT_STARTUP_DELAY,
     DEFAULT_TTL,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
@@ -73,6 +75,8 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         self._domain = str(config_entry.data[CONF_DOMAIN])
 
         interval = int(config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
+        self._startup_delay = max(0, int(config_entry.options.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY)))
+        self._startup_delay_until = datetime.now(tz=UTC) + timedelta(seconds=self._startup_delay)
 
         super().__init__(
             hass,
@@ -83,6 +87,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             always_update=True,
         )
         self.data = DdnsData()
+        self._startup_delay_logged = False
         self._client = PorkbunClient(
             async_get_clientsession(hass),
             str(config_entry.data[CONF_API_KEY]),
@@ -149,6 +154,20 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         data = self.data
         issue_id = f"api_access_{self._domain}"
         try:
+            # Optional startup delay (default 5 minutes) to avoid transient network/DNS issues
+            # immediately after Home Assistant starts or the config entry reloads.
+            now = datetime.now(tz=UTC)
+            if data.last_updated is None and now < self._startup_delay_until:
+                if not self._startup_delay_logged:
+                    remaining = int((self._startup_delay_until - now).total_seconds())
+                    LOGGER.debug(
+                        "Startup delay active for %s; deferring first update for %ss",
+                        self._domain,
+                        remaining,
+                    )
+                    self._startup_delay_logged = True
+                return data
+
             # Get current public IPs
             if self.ipv4_enabled:
                 data.public_ipv4 = await self._client.ping()

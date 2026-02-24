@@ -17,6 +17,7 @@ from custom_components.porkbun_ddns.const import (
     CONF_IPV4,
     CONF_IPV6,
     CONF_SECRET_KEY,
+    CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
     DEFAULT_UPDATE_INTERVAL,
@@ -41,6 +42,7 @@ def make_entry(hass: HomeAssistant, *, domain_name: str = MOCK_DOMAIN, **options
         CONF_IPV4: True,
         CONF_IPV6: False,
         CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+        CONF_STARTUP_DELAY: 0,
     }
     defaults.update(options)
     entry = MockConfigEntry(
