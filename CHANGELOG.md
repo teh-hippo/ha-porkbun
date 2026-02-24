@@ -1,6 +1,34 @@
 # CHANGELOG
 
 
+## v1.3.2 (2026-02-24)
+
+### Bug Fixes
+
+- **porkbun_ddns**: Avoid blank error messages
+  ([`abb4c16`](https://github.com/teh-hippo/ha-porkbun/commit/abb4c16c7aee35e0c0609d19665534d9ab887c6a))
+
+### Refactoring
+
+- Simplify config flow
+  ([`313f162`](https://github.com/teh-hippo/ha-porkbun/commit/313f162a9a2fc46c3035dd42d0c12354129fa247))
+
+- Simplify coordinator updates
+  ([`ce4b548`](https://github.com/teh-hippo/ha-porkbun/commit/ce4b54876cb9a7897f628b7b89b2f048a36133b7))
+
+- Simplify diagnostics
+  ([`cb29569`](https://github.com/teh-hippo/ha-porkbun/commit/cb295699762f229057635985e573fcadc692b87f))
+
+- Simplify refresh button
+  ([`bc3f95a`](https://github.com/teh-hippo/ha-porkbun/commit/bc3f95ab40b644a9303ab41581d4d6674971cfe4))
+
+- Streamline API client
+  ([`88435d8`](https://github.com/teh-hippo/ha-porkbun/commit/88435d84704987a69021f6a388f411b70b6dc96f))
+
+- Streamline entities
+  ([`151d10f`](https://github.com/teh-hippo/ha-porkbun/commit/151d10f6299c1168ce60193db02f045862c6c8a8))
+
+
 ## v1.3.1 (2026-02-21)
 
 ### Bug Fixes
