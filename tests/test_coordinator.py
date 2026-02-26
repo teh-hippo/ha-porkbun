@@ -162,6 +162,45 @@ async def test_coordinator_record_update_failure_marks_record(
     assert record.error is not None
 
 
+async def test_coordinator_escalates_domain_failure_logging(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    mock_porkbun_client.ping.side_effect = [TimeoutError(), TimeoutError(), TimeoutError()]
+    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass))
+
+    with patch("custom_components.porkbun_ddns.coordinator.LOGGER") as logger:
+        for _ in range(3):
+            with pytest.raises(UpdateFailed):
+                await coordinator._async_update_data()
+
+    assert logger.warning.call_count >= 2
+    assert any("update failed" in str(call.args[0]).lower() for call in logger.error.call_args_list)
+
+
+async def test_coordinator_record_failure_escalates_and_recovers(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    mock_porkbun_client.get_records.side_effect = [
+        PorkbunApiError("Record error"),
+        PorkbunApiError("Record error"),
+        PorkbunApiError("Record error"),
+        [],
+    ]
+    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass))
+
+    with patch("custom_components.porkbun_ddns.coordinator.LOGGER") as logger:
+        await coordinator._async_update_data()
+        await coordinator._async_update_data()
+        await coordinator._async_update_data()
+        await coordinator._async_update_data()
+
+    assert any("failed to update" in str(call.args[0]).lower() for call in logger.error.call_args_list)
+    assert any("recovered after" in str(call.args[0]).lower() for call in logger.info.call_args_list)
+    assert coordinator.data.records["@_A"].consecutive_failures == 0
+
+
 async def test_get_ipv6_success(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     mock_response = MagicMock()
     mock_response.status = 200

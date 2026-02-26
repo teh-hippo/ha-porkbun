@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
@@ -170,12 +170,66 @@ async def test_request_passes_timeout() -> None:
     assert timeout.total == API_REQUEST_TIMEOUT
 
 
-async def test_request_timeout_raises_update_failed() -> None:
+async def test_request_retries_on_connection_error_then_succeeds() -> None:
+    response = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
+    success_ctx = MagicMock()
+    success_ctx.__aenter__ = AsyncMock(return_value=response)
+    success_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    session = MagicMock(spec=aiohttp.ClientSession)
+    session.post.side_effect = [
+        aiohttp.ClientConnectionError("Connection reset"),
+        aiohttp.ClientConnectionError("Connection reset"),
+        success_ctx,
+    ]
+
+    with (
+        patch("custom_components.porkbun_ddns.api.asyncio.sleep", new=AsyncMock()) as sleep_mock,
+        patch("custom_components.porkbun_ddns.api.secrets.randbelow", return_value=0),
+    ):
+        assert await _client(session).ping() == "1.2.3.4"
+
+    assert session.post.call_count == 3
+    assert sleep_mock.await_count == 2
+
+
+async def test_request_retries_on_http_503_then_succeeds() -> None:
+    error_response = _mock_response({"status": "ERROR", "message": "Service temporarily unavailable"}, status=503)
+    error_ctx = MagicMock()
+    error_ctx.__aenter__ = AsyncMock(return_value=error_response)
+    error_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    success_response = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
+    success_ctx = MagicMock()
+    success_ctx.__aenter__ = AsyncMock(return_value=success_response)
+    success_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    session = MagicMock(spec=aiohttp.ClientSession)
+    session.post.side_effect = [error_ctx, success_ctx]
+
+    with (
+        patch("custom_components.porkbun_ddns.api.asyncio.sleep", new=AsyncMock()) as sleep_mock,
+        patch("custom_components.porkbun_ddns.api.secrets.randbelow", return_value=0),
+    ):
+        assert await _client(session).ping() == "1.2.3.4"
+
+    assert session.post.call_count == 2
+    assert sleep_mock.await_count == 1
+
+
+async def test_request_timeout_raises_after_retries() -> None:
     session = MagicMock(spec=aiohttp.ClientSession)
     ctx = MagicMock()
     ctx.__aenter__ = AsyncMock(side_effect=TimeoutError())
     ctx.__aexit__ = AsyncMock(return_value=False)
     session.post.return_value = ctx
 
-    with pytest.raises(TimeoutError):
-        await _client(session).ping()
+    with (
+        patch("custom_components.porkbun_ddns.api.asyncio.sleep", new=AsyncMock()) as sleep_mock,
+        patch("custom_components.porkbun_ddns.api.secrets.randbelow", return_value=0),
+    ):
+        with pytest.raises(TimeoutError):
+            await _client(session).ping()
+
+    assert session.post.call_count == 3
+    assert sleep_mock.await_count == 2

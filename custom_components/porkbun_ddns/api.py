@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
+import asyncio
+import secrets
 from dataclasses import dataclass
 from typing import Any
 
 import aiohttp
 
-from .const import API_REQUEST_TIMEOUT, LOGGER, PORKBUN_API_BASE
+from .const import (
+    API_REQUEST_MAX_ATTEMPTS,
+    API_REQUEST_RETRY_BASE,
+    API_REQUEST_RETRY_JITTER_MAX,
+    API_REQUEST_TIMEOUT,
+    LOGGER,
+    PORKBUN_API_BASE,
+)
 
 
 class PorkbunApiError(Exception):
@@ -56,6 +65,23 @@ class PorkbunClient:
         self._secret_key = secret_key
         self._api_base = api_base.rstrip("/")
 
+    @staticmethod
+    def _is_retryable_http_status(status_code: int) -> bool:
+        """Return True for transient statuses that should be retried."""
+        return status_code == 429 or status_code >= 500
+
+    @staticmethod
+    def _error_text(err: Exception) -> str:
+        """Return a useful error string even when str(exception) is empty."""
+        return str(err) or type(err).__name__
+
+    async def _sleep_before_retry(self, attempt: int) -> None:
+        """Sleep with exponential backoff and jitter before retrying."""
+        delay = API_REQUEST_RETRY_BASE * (2 ** (attempt - 1))
+        max_jitter_ms = max(1, int(API_REQUEST_RETRY_JITTER_MAX * 1000))
+        delay += secrets.randbelow(max_jitter_ms + 1) / 1000
+        await asyncio.sleep(delay)
+
     async def _request(self, endpoint: str, extra: dict[str, Any] | None = None) -> dict[str, Any]:
         """Make a POST request to the Porkbun API."""
         url = f"{self._api_base}/{endpoint.lstrip('/')}"
@@ -63,23 +89,65 @@ class PorkbunClient:
         if extra:
             payload.update(extra)
 
-        LOGGER.debug("Porkbun API request: POST %s", url)
-        async with self._session.post(
-            url, json=payload, timeout=aiohttp.ClientTimeout(total=API_REQUEST_TIMEOUT)
-        ) as resp:
-            data: dict[str, Any] = await resp.json(content_type=None)
-            LOGGER.debug("Porkbun API response: %s %s", resp.status, data.get("status"))
+        timeout = aiohttp.ClientTimeout(total=API_REQUEST_TIMEOUT)
+        for attempt in range(1, API_REQUEST_MAX_ATTEMPTS + 1):
+            try:
+                LOGGER.debug("Porkbun API request: POST %s (attempt %d/%d)", url, attempt, API_REQUEST_MAX_ATTEMPTS)
+                async with self._session.post(url, json=payload, timeout=timeout) as resp:
+                    try:
+                        data: dict[str, Any] = await resp.json(content_type=None)
+                    except ValueError as err:
+                        body = (await resp.text()).strip().replace("\n", " ")
+                        snippet = body[:200] if body else "<empty body>"
+                        msg = f"Invalid API response (HTTP {resp.status}): {snippet}"
+                        if attempt < API_REQUEST_MAX_ATTEMPTS and self._is_retryable_http_status(resp.status):
+                            LOGGER.warning(
+                                "Porkbun API transient response error, retrying (%d/%d): %s",
+                                attempt,
+                                API_REQUEST_MAX_ATTEMPTS,
+                                msg,
+                            )
+                            await self._sleep_before_retry(attempt)
+                            continue
+                        raise PorkbunApiError(msg) from err
 
-            status = data.get("status")
-            if resp.status == 403 or status != "SUCCESS":
-                msg = data.get("message") or (
-                    "Unknown API error" if resp.status == 403 or status == "ERROR" else f"Unexpected status: {status}"
+                    LOGGER.debug("Porkbun API response: %s %s", resp.status, data.get("status"))
+                    status = data.get("status")
+                    if resp.status == 403 or status != "SUCCESS":
+                        msg = data.get("message") or (
+                            "Unknown API error"
+                            if resp.status == 403 or status == "ERROR"
+                            else f"Unexpected status: {status}"
+                        )
+                        if "invalid api key" in msg.lower() or "invalid" in msg.lower():
+                            raise PorkbunAuthError(msg)
+                        if attempt < API_REQUEST_MAX_ATTEMPTS and self._is_retryable_http_status(resp.status):
+                            LOGGER.warning(
+                                "Porkbun API transient status error, retrying (%d/%d): HTTP %s %s",
+                                attempt,
+                                API_REQUEST_MAX_ATTEMPTS,
+                                resp.status,
+                                msg,
+                            )
+                            await self._sleep_before_retry(attempt)
+                            continue
+                        raise PorkbunApiError(msg)
+
+                    return data
+            except PorkbunAuthError:
+                raise
+            except (aiohttp.ClientError, TimeoutError) as err:
+                if attempt >= API_REQUEST_MAX_ATTEMPTS:
+                    raise
+                LOGGER.warning(
+                    "Porkbun API transient connection error, retrying (%d/%d): %s",
+                    attempt,
+                    API_REQUEST_MAX_ATTEMPTS,
+                    self._error_text(err),
                 )
-                if "invalid api key" in msg.lower() or "invalid" in msg.lower():
-                    raise PorkbunAuthError(msg)
-                raise PorkbunApiError(msg)
+                await self._sleep_before_retry(attempt)
 
-            return data
+        raise PorkbunApiError("Porkbun API request failed after retries")
 
     async def ping(self) -> str:
         """Validate credentials and return the caller's public IPv4 address."""

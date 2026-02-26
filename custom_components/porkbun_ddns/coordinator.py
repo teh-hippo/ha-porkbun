@@ -30,6 +30,7 @@ from .const import (
     DEFAULT_TTL,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
+    FAILURE_ERROR_THRESHOLD,
     IPV6_DETECT_URL,
     LOGGER,
 )
@@ -47,6 +48,7 @@ class RecordState:
     current_ip: str | None = None
     ok: bool = True
     error: str | None = None
+    consecutive_failures: int = 0
 
 
 @dataclass
@@ -88,6 +90,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         )
         self.data = DdnsData()
         self._startup_delay_logged = False
+        self._consecutive_update_failures = 0
         self._client = PorkbunClient(
             async_get_clientsession(hass),
             str(config_entry.data[CONF_API_KEY]),
@@ -191,6 +194,13 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             with suppress(PorkbunApiError, aiohttp.ClientError, TimeoutError):
                 data.domain_info = await self._client.get_domain_info(self._domain)
 
+            if self._consecutive_update_failures:
+                LOGGER.info(
+                    "Porkbun DDNS (%s) recovered after %d failed update cycle(s)",
+                    self._domain,
+                    self._consecutive_update_failures,
+                )
+            self._consecutive_update_failures = 0
             data.last_updated = datetime.now(tz=UTC)
             ir.async_delete_issue(self.hass, DOMAIN, issue_id)
             return data
@@ -202,10 +212,21 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             ) from err
         except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
             err_text = _error_text(err)
+            self._consecutive_update_failures += 1
+            update_log = (
+                LOGGER.error if self._consecutive_update_failures >= FAILURE_ERROR_THRESHOLD else LOGGER.warning
+            )
+            update_log(
+                "Porkbun DDNS (%s) update failed (%d consecutive failures): %s",
+                self._domain,
+                self._consecutive_update_failures,
+                err_text,
+            )
             # Domain-level failure (e.g. ping failed) — mark all records as failed
             for state in data.records.values():
                 state.ok = False
                 state.error = err_text
+                state.consecutive_failures += 1
             if isinstance(err, PorkbunApiError):
                 ir.async_create_issue(
                     self.hass,
@@ -256,12 +277,28 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                 LOGGER.info("Creating %s %s record: %s", label, record_type, target_ip)
                 await self._client.create_record(self._domain, record_type, target_ip, subdomain, DEFAULT_TTL)
 
+            if state.consecutive_failures:
+                LOGGER.info(
+                    "%s %s record recovered after %d consecutive failures",
+                    label,
+                    record_type,
+                    state.consecutive_failures,
+                )
+            state.consecutive_failures = 0
             state.current_ip = target_ip
             state.ok = True
             state.error = None
         except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
             err_text = _error_text(err)
-            LOGGER.warning("Failed to update %s %s: %s", label, record_type, err_text)
+            state.consecutive_failures += 1
+            update_log = LOGGER.error if state.consecutive_failures >= FAILURE_ERROR_THRESHOLD else LOGGER.warning
+            update_log(
+                "Failed to update %s %s (%d consecutive failures): %s",
+                label,
+                record_type,
+                state.consecutive_failures,
+                err_text,
+            )
             state.ok = False
             state.error = err_text
 
