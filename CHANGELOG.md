@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v1.4.1 (2026-02-26)
+
+### Bug Fixes
+
+- Improve timeout resilience and logging
+  ([`e4eb2c9`](https://github.com/teh-hippo/ha-porkbun/commit/e4eb2c9724d28abf11c9f5ab76ec8a7c772de889))
+
+### Continuous Integration
+
+- Publish latest release alias
+  ([`8cacad0`](https://github.com/teh-hippo/ha-porkbun/commit/8cacad0256701b43be5a96c2368b00b0e459f764))
+
+- Update latest tag in release workflow
+  ([`6d67c77`](https://github.com/teh-hippo/ha-porkbun/commit/6d67c7721fb5160132cbc7fc30ba40eaff9fe267))
+
+
 ## v1.4.0 (2026-02-24)
 
 ### Features
