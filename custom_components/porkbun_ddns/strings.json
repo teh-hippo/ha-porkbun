@@ -56,7 +56,7 @@
         },
         "data_description": {
           "api_key": "Your Porkbun API key from porkbun.com/account/api.",
-          "secret_key": "Your Porkbun secret API key. Leave blank to keep the existing secret key.",
+          "secret_key": "Your Porkbun secret API key paired with the API key above.",
           "domain": "The root domain to update (e.g., example.com).",
           "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
           "ipv4": "Create or update A records with your public IPv4 address.",

@@ -8,7 +8,7 @@ import aiohttp
 import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
 
 from custom_components.porkbun_ddns.api import PorkbunAuthError
 from custom_components.porkbun_ddns.config_flow import CONF_IGNORE_VERIFICATION, _parse_subdomains
@@ -321,15 +321,18 @@ async def test_reconfigure_flow(
         )
 
     assert result["type"] is expected_type
+    assert client.ping.await_count == 1
     if expected_type is FlowResultType.ABORT:
         assert result["reason"] == "reconfigure_successful"
         assert entry.data[CONF_API_KEY] == new_api_key
         assert entry.data[CONF_SECRET_KEY] == new_secret_key
     else:
         assert result["errors"] == {"base": expected_error}
+        if ping_side_effect is not None:
+            assert client.get_records.await_count == 0
 
 
-async def test_reconfigure_flow_keeps_existing_secret_when_omitted(
+async def test_reconfigure_flow_requires_secret_key(
     hass: HomeAssistant,
     mock_porkbun_client: AsyncMock,
 ) -> None:
@@ -342,17 +345,17 @@ async def test_reconfigure_flow_keeps_existing_secret_when_omitted(
         client.get_records = AsyncMock(return_value=[])
 
         result = await entry.start_reconfigure_flow(hass)
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                CONF_API_KEY: MOCK_API_KEY,
-                CONF_DOMAIN: MOCK_DOMAIN,
-                CONF_SUBDOMAINS: "www, api",
-                CONF_IPV4: True,
-                CONF_IPV6: True,
-            },
-        )
+        with pytest.raises(InvalidData):
+            await hass.config_entries.flow.async_configure(
+                result["flow_id"],
+                {
+                    CONF_API_KEY: MOCK_API_KEY,
+                    CONF_DOMAIN: MOCK_DOMAIN,
+                    CONF_SUBDOMAINS: "www, api",
+                    CONF_IPV4: True,
+                    CONF_IPV6: True,
+                },
+            )
 
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "reconfigure_successful"
     assert entry.data[CONF_SECRET_KEY] == MOCK_SECRET_KEY
+    assert client.ping.await_count == 0

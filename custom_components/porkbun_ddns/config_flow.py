@@ -77,7 +77,7 @@ def _reconfigure_schema(
     return vol.Schema(
         {
             vol.Required(CONF_API_KEY, default=api_key_default): str,
-            vol.Optional(CONF_SECRET_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
+            vol.Required(CONF_SECRET_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
             vol.Required(CONF_DOMAIN, default=domain_default): str,
             vol.Optional(CONF_SUBDOMAINS, default=subdomains_default): str,
             vol.Optional(CONF_IPV4, default=ipv4_default): bool,
@@ -96,16 +96,6 @@ def _options_from_input(user_input: dict[str, Any], *, include_interval: bool = 
         options[CONF_UPDATE_INTERVAL] = int(user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
         options[CONF_STARTUP_DELAY] = int(user_input.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY))
     return options
-
-
-def _resolve_reconfigure_credentials(user_input: dict[str, Any], entry: ConfigEntry) -> tuple[str, str]:
-    """Resolve credentials from reconfigure input, preserving secret if omitted."""
-    api_key = str(user_input.get(CONF_API_KEY, entry.data[CONF_API_KEY])).strip()
-    secret_raw = user_input.get(CONF_SECRET_KEY)
-    secret_key = secret_raw.strip() if isinstance(secret_raw, str) else ""
-    if not secret_key:
-        secret_key = str(entry.data[CONF_SECRET_KEY])
-    return api_key, secret_key
 
 
 class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -254,7 +244,8 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             domain_name = user_input[CONF_DOMAIN].strip().lower()
-            api_key, secret_key = _resolve_reconfigure_credentials(user_input, entry)
+            api_key = str(user_input[CONF_API_KEY]).strip()
+            secret_key = str(user_input[CONF_SECRET_KEY]).strip()
             client = self._make_client(api_key, secret_key)
             if error := await self._try_api(client.ping()):
                 errors["base"] = error
