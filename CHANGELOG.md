@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.5.0 (2026-02-28)
+
+### Features
+
+- **porkbun_ddns**: Allow bypassing setup key verification
+  ([`e25400a`](https://github.com/teh-hippo/ha-porkbun/commit/e25400abe2d015fb2374b9eb991ffb723adf55c1))
+
+
 ## v1.4.2 (2026-02-28)
 
 ### Bug Fixes
