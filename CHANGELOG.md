@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.5.1 (2026-02-28)
+
+### Bug Fixes
+
+- **porkbun_ddns**: Require credential validation on reconfigure
+  ([`c21541f`](https://github.com/teh-hippo/ha-porkbun/commit/c21541f0712a883e82ab5971f3e9bfdd431e3258))
+
+
 ## v1.5.0 (2026-02-28)
 
 ### Features
