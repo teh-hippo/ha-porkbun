@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.4.2 (2026-02-28)
+
+### Bug Fixes
+
+- **porkbun_ddns**: Allow API key rotation via reconfigure
+  ([`4b15596`](https://github.com/teh-hippo/ha-porkbun/commit/4b155965ea868ae0c9d0d517316476f06f1de00b))
+
+
 ## v1.4.1 (2026-02-26)
 
 ### Bug Fixes
