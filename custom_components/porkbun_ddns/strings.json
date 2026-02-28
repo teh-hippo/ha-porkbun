@@ -6,11 +6,13 @@
         "description": "Enter your Porkbun API key and secret key. You can create these at porkbun.com/account/api.",
         "data": {
           "api_key": "API Key",
-          "secret_key": "Secret API Key"
+          "secret_key": "Secret API Key",
+          "ignore_verification": "Ignore verification for now"
         },
         "data_description": {
           "api_key": "Your Porkbun API key from porkbun.com/account/api.",
-          "secret_key": "Your Porkbun secret API key."
+          "secret_key": "Your Porkbun secret API key.",
+          "ignore_verification": "If enabled, continue setup even when API credential verification fails. You can update keys later from Reconfigure."
         }
       },
       "domain": {

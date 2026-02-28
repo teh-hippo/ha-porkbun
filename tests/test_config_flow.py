@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 from custom_components.porkbun_ddns.api import PorkbunAuthError
-from custom_components.porkbun_ddns.config_flow import _parse_subdomains
+from custom_components.porkbun_ddns.config_flow import CONF_IGNORE_VERIFICATION, _parse_subdomains
 from custom_components.porkbun_ddns.const import (
     CONF_API_KEY,
     CONF_DOMAIN,
@@ -56,10 +56,14 @@ async def _submit_user_step(
     *,
     api_key: str = MOCK_API_KEY,
     secret_key: str = MOCK_SECRET_KEY,
+    ignore_verification: bool = False,
 ) -> config_entries.ConfigFlowResult:
+    payload: dict[str, str | bool] = {CONF_API_KEY: api_key, CONF_SECRET_KEY: secret_key}
+    if ignore_verification:
+        payload[CONF_IGNORE_VERIFICATION] = True
     return await hass.config_entries.flow.async_configure(
         flow_id,
-        {CONF_API_KEY: api_key, CONF_SECRET_KEY: secret_key},
+        payload,
     )
 
 
@@ -111,6 +115,45 @@ async def test_user_step_errors(
 
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": expected_error}
+
+
+async def test_user_step_error_can_be_ignored_for_now(hass: HomeAssistant) -> None:
+    with patch("custom_components.porkbun_ddns.config_flow.PorkbunClient", autospec=True) as mock_cls:
+        client = mock_cls.return_value
+        client.ping = AsyncMock(side_effect=PorkbunAuthError("Invalid"))
+        client.get_records = AsyncMock(return_value=[])
+
+        flow_id = await _start_user_flow(hass)
+        first = await _submit_user_step(hass, flow_id)
+        assert first["type"] is FlowResultType.FORM
+        assert first["step_id"] == "user"
+        assert first["errors"] == {"base": "invalid_auth"}
+
+        second = await _submit_user_step(hass, flow_id, ignore_verification=True)
+
+    assert second["type"] is FlowResultType.FORM
+    assert second["step_id"] == "domain"
+
+
+async def test_domain_step_skips_domain_validation_after_ignored_user_verification(
+    hass: HomeAssistant,
+) -> None:
+    with patch("custom_components.porkbun_ddns.config_flow.PorkbunClient", autospec=True) as mock_cls:
+        client = mock_cls.return_value
+        client.ping = AsyncMock(side_effect=PorkbunAuthError("Invalid"))
+        client.get_records = AsyncMock(side_effect=RuntimeError("should not be called"))
+
+        flow_id = await _start_user_flow(hass)
+        await _submit_user_step(hass, flow_id, ignore_verification=True)
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            {CONF_DOMAIN: MOCK_DOMAIN, CONF_SUBDOMAINS: "www, vpn", CONF_IPV4: True, CONF_IPV6: False},
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_API_KEY] == MOCK_API_KEY
+    assert result["data"][CONF_SECRET_KEY] == MOCK_SECRET_KEY
+    assert client.get_records.await_count == 0
 
 
 @pytest.mark.parametrize(

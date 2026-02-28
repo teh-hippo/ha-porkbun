@@ -35,10 +35,13 @@ from .const import (
     LOGGER,
 )
 
+CONF_IGNORE_VERIFICATION = "ignore_verification"
+
 STEP_USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_KEY): str,
         vol.Required(CONF_SECRET_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
+        vol.Optional(CONF_IGNORE_VERIFICATION, default=False): bool,
     }
 )
 
@@ -115,6 +118,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         """Initialize the config flow."""
         self._api_key: str = ""
         self._secret_key: str = ""
+        self._skip_verification = False
 
     @staticmethod
     @callback
@@ -146,12 +150,20 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         """Step 1: Validate API credentials."""
         errors: dict[str, str] = {}
         if user_input is not None:
+            ignore_verification = bool(user_input.get(CONF_IGNORE_VERIFICATION, False))
             client = self._make_client(user_input[CONF_API_KEY], user_input[CONF_SECRET_KEY])
             if error := await self._try_api(client.ping()):
-                errors["base"] = error
+                if not ignore_verification:
+                    errors["base"] = error
+                else:
+                    self._api_key = user_input[CONF_API_KEY]
+                    self._secret_key = user_input[CONF_SECRET_KEY]
+                    self._skip_verification = True
+                    return await self.async_step_domain()
             else:
                 self._api_key = user_input[CONF_API_KEY]
                 self._secret_key = user_input[CONF_SECRET_KEY]
+                self._skip_verification = False
                 return await self.async_step_domain()
 
         return self.async_show_form(step_id="user", data_schema=STEP_USER_SCHEMA, errors=errors)
@@ -167,6 +179,16 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(domain_name)
             self._abort_if_unique_id_configured()
 
+            if self._skip_verification:
+                return self.async_create_entry(
+                    title=domain_name,
+                    data={
+                        CONF_API_KEY: self._api_key,
+                        CONF_SECRET_KEY: self._secret_key,
+                        CONF_DOMAIN: domain_name,
+                    },
+                    options=_options_from_input(user_input, include_interval=True),
+                )
             client = self._make_client(self._api_key, self._secret_key)
             if error := await self._validate_domain(client, domain_name):
                 errors["base"] = error
