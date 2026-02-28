@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.5.2 (2026-02-28)
+
+### Bug Fixes
+
+- **porkbun_ddns**: Remove ignore toggle from reauth
+  ([`097c565`](https://github.com/teh-hippo/ha-porkbun/commit/097c5653d37544a9d16e47f65ceb474e7c70d50b))
+
+
 ## v1.5.1 (2026-02-28)
 
 ### Bug Fixes
