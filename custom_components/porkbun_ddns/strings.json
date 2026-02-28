@@ -45,12 +45,16 @@
         "title": "Reconfigure Porkbun DDNS",
         "description": "Update the domain and subdomain settings for this integration.",
         "data": {
+          "api_key": "API Key",
+          "secret_key": "Secret API Key",
           "domain": "Domain",
           "subdomains": "Subdomains",
           "ipv4": "Update IPv4 (A record)",
           "ipv6": "Update IPv6 (AAAA record)"
         },
         "data_description": {
+          "api_key": "Your Porkbun API key from porkbun.com/account/api.",
+          "secret_key": "Your Porkbun secret API key. Leave blank to keep the existing secret key.",
           "domain": "The root domain to update (e.g., example.com).",
           "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
           "ipv4": "Create or update A records with your public IPv4 address.",

@@ -235,36 +235,81 @@ async def test_options_flow_updates_and_reloads(
 
 
 @pytest.mark.parametrize(
-    ("side_effect", "expected_type", "expected_error"),
+    ("ping_side_effect", "records_side_effect", "expected_type", "expected_error"),
     [
-        (None, FlowResultType.ABORT, None),
-        (PorkbunAuthError("Not found"), FlowResultType.FORM, "domain_not_found"),
-        (aiohttp.ClientConnectionError("Refused"), FlowResultType.FORM, "cannot_connect"),
-        (RuntimeError("boom"), FlowResultType.FORM, "unknown"),
+        (None, None, FlowResultType.ABORT, None),
+        (PorkbunAuthError("Invalid"), None, FlowResultType.FORM, "invalid_auth"),
+        (aiohttp.ClientConnectionError("Refused"), None, FlowResultType.FORM, "cannot_connect"),
+        (RuntimeError("boom"), None, FlowResultType.FORM, "unknown"),
+        (None, PorkbunAuthError("Not found"), FlowResultType.FORM, "domain_not_found"),
     ],
 )
 async def test_reconfigure_flow(
     hass: HomeAssistant,
     mock_porkbun_client: AsyncMock,
-    side_effect: Exception | None,
+    ping_side_effect: Exception | None,
+    records_side_effect: Exception | None,
     expected_type: FlowResultType,
     expected_error: str | None,
+) -> None:
+    entry = make_entry(hass, subdomains=["www"])
+    await setup_entry(hass, entry)
+    new_api_key = "pk1_reconfigure_new"
+    new_secret_key = "sk1_reconfigure_new"
+
+    with patch("custom_components.porkbun_ddns.config_flow.PorkbunClient", autospec=True) as mock_cls:
+        client = mock_cls.return_value
+        client.ping = AsyncMock(side_effect=ping_side_effect) if ping_side_effect else AsyncMock(return_value=MOCK_IPV4)
+        client.get_records = (
+            AsyncMock(side_effect=records_side_effect) if records_side_effect else AsyncMock(return_value=[])
+        )
+
+        result = await entry.start_reconfigure_flow(hass)
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_API_KEY: new_api_key,
+                CONF_SECRET_KEY: new_secret_key,
+                CONF_DOMAIN: MOCK_DOMAIN,
+                CONF_SUBDOMAINS: "www, api",
+                CONF_IPV4: True,
+                CONF_IPV6: True,
+            },
+        )
+
+    assert result["type"] is expected_type
+    if expected_type is FlowResultType.ABORT:
+        assert result["reason"] == "reconfigure_successful"
+        assert entry.data[CONF_API_KEY] == new_api_key
+        assert entry.data[CONF_SECRET_KEY] == new_secret_key
+    else:
+        assert result["errors"] == {"base": expected_error}
+
+
+async def test_reconfigure_flow_keeps_existing_secret_when_omitted(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
 ) -> None:
     entry = make_entry(hass, subdomains=["www"])
     await setup_entry(hass, entry)
 
     with patch("custom_components.porkbun_ddns.config_flow.PorkbunClient", autospec=True) as mock_cls:
         client = mock_cls.return_value
-        client.get_records = AsyncMock(side_effect=side_effect) if side_effect else AsyncMock(return_value=[])
+        client.ping = AsyncMock(return_value=MOCK_IPV4)
+        client.get_records = AsyncMock(return_value=[])
 
         result = await entry.start_reconfigure_flow(hass)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {CONF_DOMAIN: MOCK_DOMAIN, CONF_SUBDOMAINS: "www, api", CONF_IPV4: True, CONF_IPV6: True},
+            {
+                CONF_API_KEY: MOCK_API_KEY,
+                CONF_DOMAIN: MOCK_DOMAIN,
+                CONF_SUBDOMAINS: "www, api",
+                CONF_IPV4: True,
+                CONF_IPV6: True,
+            },
         )
 
-    assert result["type"] is expected_type
-    if expected_type is FlowResultType.ABORT:
-        assert result["reason"] == "reconfigure_successful"
-    else:
-        assert result["errors"] == {"base": expected_error}
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.data[CONF_SECRET_KEY] == MOCK_SECRET_KEY

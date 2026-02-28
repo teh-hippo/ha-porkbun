@@ -64,6 +64,7 @@ Disabled by default:
 ## Troubleshooting
 
 - Invalid key/secret: regenerate at [porkbun.com/account/api](https://porkbun.com/account/api)
+- To rotate credentials: **Devices & Services → Porkbun DDNS → Reconfigure** and update API key/secret
 - Domain not accessible: enable API access in Porkbun domain settings
 - Repair issue (`api_access_disabled`): re-enable API access, then press **Refresh DDNS Records**
 - IPv6 not updating: verify IPv6 connectivity and external reachability

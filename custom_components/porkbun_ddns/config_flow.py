@@ -63,6 +63,26 @@ def _domain_schema(
     )
 
 
+def _reconfigure_schema(
+    *,
+    api_key_default: str,
+    domain_default: str,
+    subdomains_default: str,
+    ipv4_default: bool,
+    ipv6_default: bool,
+) -> vol.Schema:
+    return vol.Schema(
+        {
+            vol.Required(CONF_API_KEY, default=api_key_default): str,
+            vol.Optional(CONF_SECRET_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
+            vol.Required(CONF_DOMAIN, default=domain_default): str,
+            vol.Optional(CONF_SUBDOMAINS, default=subdomains_default): str,
+            vol.Optional(CONF_IPV4, default=ipv4_default): bool,
+            vol.Optional(CONF_IPV6, default=ipv6_default): bool,
+        }
+    )
+
+
 def _options_from_input(user_input: dict[str, Any], *, include_interval: bool = False) -> dict[str, Any]:
     options: dict[str, Any] = {
         CONF_SUBDOMAINS: _parse_subdomains(user_input.get(CONF_SUBDOMAINS, "")),
@@ -73,6 +93,16 @@ def _options_from_input(user_input: dict[str, Any], *, include_interval: bool = 
         options[CONF_UPDATE_INTERVAL] = int(user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
         options[CONF_STARTUP_DELAY] = int(user_input.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY))
     return options
+
+
+def _resolve_reconfigure_credentials(user_input: dict[str, Any], entry: ConfigEntry) -> tuple[str, str]:
+    """Resolve credentials from reconfigure input, preserving secret if omitted."""
+    api_key = str(user_input.get(CONF_API_KEY, entry.data[CONF_API_KEY])).strip()
+    secret_raw = user_input.get(CONF_SECRET_KEY)
+    secret_key = secret_raw.strip() if isinstance(secret_raw, str) else ""
+    if not secret_key:
+        secret_key = str(entry.data[CONF_SECRET_KEY])
+    return api_key, secret_key
 
 
 class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -191,7 +221,8 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         assert entry is not None
         current = entry.options
-        schema = _domain_schema(
+        schema = _reconfigure_schema(
+            api_key_default=str(entry.data.get(CONF_API_KEY, "")),
             domain_default=str(entry.data.get(CONF_DOMAIN, "")),
             subdomains_default=", ".join(current.get(CONF_SUBDOMAINS, [])),
             ipv4_default=bool(current.get(CONF_IPV4, True)),
@@ -201,16 +232,23 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             domain_name = user_input[CONF_DOMAIN].strip().lower()
-
-            client = self._make_client(entry.data[CONF_API_KEY], entry.data[CONF_SECRET_KEY])
-            if error := await self._validate_domain(client, domain_name):
+            api_key, secret_key = _resolve_reconfigure_credentials(user_input, entry)
+            client = self._make_client(api_key, secret_key)
+            if error := await self._try_api(client.ping()):
+                errors["base"] = error
+            elif error := await self._validate_domain(client, domain_name):
                 errors["base"] = error
             else:
                 return self.async_update_reload_and_abort(
                     entry,
                     unique_id=domain_name,
                     title=domain_name,
-                    data={**entry.data, CONF_DOMAIN: domain_name},
+                    data={
+                        **entry.data,
+                        CONF_API_KEY: api_key,
+                        CONF_SECRET_KEY: secret_key,
+                        CONF_DOMAIN: domain_name,
+                    },
                     options={
                         **entry.options,
                         **_options_from_input(user_input),
