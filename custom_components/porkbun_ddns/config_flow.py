@@ -37,6 +37,13 @@ from .const import (
 
 CONF_IGNORE_VERIFICATION = "ignore_verification"
 
+STEP_CREDENTIALS_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_API_KEY): str,
+        vol.Required(CONF_SECRET_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
+    }
+)
+
 STEP_USER_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_KEY): str,
@@ -224,7 +231,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=STEP_USER_SCHEMA,
+            data_schema=STEP_CREDENTIALS_SCHEMA,
             errors=errors,
         )
 

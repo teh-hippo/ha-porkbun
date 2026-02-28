@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 import aiohttp
 import pytest
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
@@ -65,6 +66,17 @@ async def _submit_user_step(
         flow_id,
         payload,
     )
+
+
+def _schema_keys(schema: vol.Schema) -> set[str]:
+    return {str(getattr(key, "schema", key)) for key in schema.schema}
+
+
+async def test_user_step_schema_has_ignore_verification(hass: HomeAssistant) -> None:
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert CONF_IGNORE_VERIFICATION in _schema_keys(result["data_schema"])
 
 
 async def test_full_flow(hass: HomeAssistant) -> None:
@@ -240,6 +252,22 @@ async def test_reauth_flow(
         assert entry.data[CONF_SECRET_KEY] == MOCK_SECRET_KEY
     else:
         assert result["errors"] == {"base": expected_error}
+
+
+async def test_reauth_schema_excludes_ignore_verification(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    entry = make_entry(hass)
+    await setup_entry(hass, entry)
+
+    result = await entry.start_reauth_flow(hass)
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reauth_confirm"
+    schema_keys = _schema_keys(result["data_schema"])
+    assert CONF_IGNORE_VERIFICATION not in schema_keys
+    assert {CONF_API_KEY, CONF_SECRET_KEY}.issubset(schema_keys)
 
 
 async def test_options_flow_updates_and_reloads(
