@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.5.3 (2026-03-01)
+
+### Bug Fixes
+
+- Trigger first refresh after startup delay
+  ([`0198c44`](https://github.com/teh-hippo/ha-porkbun/commit/0198c4429e718675d25bd407db53c3a72ffb2817))
+
+
 ## v1.5.2 (2026-02-28)
 
 ### Bug Fixes
