@@ -14,7 +14,12 @@ from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.porkbun_ddns import async_remove_config_entry_device
 from custom_components.porkbun_ddns.api import PorkbunApiError, PorkbunAuthError
-from custom_components.porkbun_ddns.const import DEFAULT_UPDATE_INTERVAL, DOMAIN
+from custom_components.porkbun_ddns.const import (
+    CONF_STARTUP_DELAY,
+    CONF_UPDATE_INTERVAL,
+    DEFAULT_UPDATE_INTERVAL,
+    DOMAIN,
+)
 from custom_components.porkbun_ddns.coordinator import PorkbunDdnsCoordinator
 
 from .conftest import MOCK_DOMAIN, MOCK_IPV4, make_entry, setup_entry
@@ -59,6 +64,32 @@ async def test_coordinator_polls_on_time_change(hass: HomeAssistant, mock_porkbu
 
     assert mock_porkbun_client.ping.call_count > first_call_count
     assert entry.runtime_data.data.public_ipv4 == "5.6.7.8"
+
+
+async def test_first_refresh_uses_startup_delay(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+    freezer,
+) -> None:
+    freezer.move_to("2026-02-18 12:00:00+00:00")
+    entry = make_entry(
+        hass,
+        **{
+            CONF_STARTUP_DELAY: 300,
+            CONF_UPDATE_INTERVAL: 3600,
+        },
+    )
+    await setup_entry(hass, entry)
+
+    assert mock_porkbun_client.ping.call_count == 0
+    assert entry.runtime_data.data.last_updated is None
+
+    freezer.move_to("2026-02-18 12:05:01+00:00")
+    async_fire_time_changed(hass, dt_util.utcnow())
+    await hass.async_block_till_done()
+
+    assert mock_porkbun_client.ping.call_count == 1
+    assert entry.runtime_data.data.public_ipv4 == MOCK_IPV4
 
 
 @pytest.mark.parametrize(

@@ -152,6 +152,18 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         """Return True if all records updated successfully."""
         return self.record_count > 0 and self.ok_count == self.record_count
 
+    @property
+    def startup_delay_remaining(self) -> float:
+        """Return seconds until the first update should run."""
+        if self.data.last_updated is not None:
+            return 0
+        return max(0.0, (self._startup_delay_until - datetime.now(tz=UTC)).total_seconds())
+
+    @property
+    def startup_delay_until(self) -> datetime:
+        """Return when the first update may run."""
+        return self._startup_delay_until
+
     async def _async_update_data(self) -> DdnsData:
         """Fetch current IP and update DNS records if needed."""
         data = self.data
