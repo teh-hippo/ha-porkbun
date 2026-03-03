@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.6.0 (2026-03-03)
+
+### Features
+
+- Improve UX for intermittent Porkbun API failures
+  ([`4860d78`](https://github.com/teh-hippo/ha-porkbun/commit/4860d78feed6750a3286e815a03adaeca35f7054))
+
+
 ## v1.5.3 (2026-03-01)
 
 ### Bug Fixes
