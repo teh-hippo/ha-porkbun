@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.porkbun_ddns.api import DomainInfo
-from custom_components.porkbun_ddns.const import CONF_SUBDOMAINS
+from custom_components.porkbun_ddns.const import CONF_FAILURE_THRESHOLD, CONF_SUBDOMAINS
 
 from .conftest import MOCK_DOMAIN, MOCK_IPV4, enable_entity, get_entity_id, make_entry, reload_entry, setup_entry
 
@@ -97,7 +97,7 @@ async def test_entities_unavailable_after_failed_scheduled_poll(
     mock_porkbun_client: AsyncMock,
 ) -> None:
     mock_porkbun_client.ping.side_effect = [MOCK_IPV4, TimeoutError(), TimeoutError()]
-    entry = make_entry(hass)
+    entry = make_entry(hass, **{CONF_FAILURE_THRESHOLD: 1})
     await setup_entry(hass, entry)
 
     entity_id = get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_last_updated")

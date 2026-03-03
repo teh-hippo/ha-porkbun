@@ -82,6 +82,7 @@
         "data": {
           "update_interval": "Update interval (seconds)",
           "startup_delay": "Startup delay (seconds)",
+          "failure_threshold": "Failure tolerance",
           "subdomains": "Subdomains",
           "ipv4": "Update IPv4 (A record)",
           "ipv6": "Update IPv6 (AAAA record)"
@@ -89,6 +90,7 @@
         "data_description": {
           "update_interval": "How often to check and update DNS records, in seconds. Minimum 60.",
           "startup_delay": "How long to wait after Home Assistant starts or the config entry reloads before the first update, in seconds. Set to 0 to disable.",
+          "failure_threshold": "Number of consecutive failed update cycles before raising an error. Transient failures below this count are silently tolerated. Default 3.",
           "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
           "ipv4": "Create or update A records with your public IPv4 address.",
           "ipv6": "Create or update AAAA records with your public IPv6 address."

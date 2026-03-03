@@ -101,7 +101,7 @@ class PorkbunClient:
                         snippet = body[:200] if body else "<empty body>"
                         msg = f"Invalid API response (HTTP {resp.status}): {snippet}"
                         if attempt < API_REQUEST_MAX_ATTEMPTS and self._is_retryable_http_status(resp.status):
-                            LOGGER.warning(
+                            LOGGER.debug(
                                 "Porkbun API transient response error, retrying (%d/%d): %s",
                                 attempt,
                                 API_REQUEST_MAX_ATTEMPTS,
@@ -122,7 +122,7 @@ class PorkbunClient:
                         if "invalid api key" in msg.lower() or "invalid" in msg.lower():
                             raise PorkbunAuthError(msg)
                         if attempt < API_REQUEST_MAX_ATTEMPTS and self._is_retryable_http_status(resp.status):
-                            LOGGER.warning(
+                            LOGGER.debug(
                                 "Porkbun API transient status error, retrying (%d/%d): HTTP %s %s",
                                 attempt,
                                 API_REQUEST_MAX_ATTEMPTS,
@@ -139,7 +139,7 @@ class PorkbunClient:
             except (aiohttp.ClientError, TimeoutError) as err:
                 if attempt >= API_REQUEST_MAX_ATTEMPTS:
                     raise
-                LOGGER.warning(
+                LOGGER.debug(
                     "Porkbun API transient connection error, retrying (%d/%d): %s",
                     attempt,
                     API_REQUEST_MAX_ATTEMPTS,

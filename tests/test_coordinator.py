@@ -12,7 +12,13 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.porkbun_ddns.api import DnsRecord, PorkbunApiError, PorkbunAuthError
-from custom_components.porkbun_ddns.const import CONF_IPV6, CONF_STARTUP_DELAY, CONF_SUBDOMAINS, DOMAIN
+from custom_components.porkbun_ddns.const import (
+    CONF_FAILURE_THRESHOLD,
+    CONF_IPV6,
+    CONF_STARTUP_DELAY,
+    CONF_SUBDOMAINS,
+    DOMAIN,
+)
 from custom_components.porkbun_ddns.coordinator import PorkbunDdnsCoordinator
 
 from .conftest import MOCK_DOMAIN, MOCK_IPV4, MOCK_IPV6, make_entry
@@ -62,8 +68,10 @@ async def test_coordinator_error_handling(
     expected_exception: type[Exception],
 ) -> None:
     mock_porkbun_client.ping.side_effect = side_effect
+    # Auth errors raise immediately; transient errors only raise after exceeding threshold
+    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass, **{CONF_FAILURE_THRESHOLD: 1}))
     with pytest.raises(expected_exception):
-        await PorkbunDdnsCoordinator(hass, make_entry(hass))._async_update_data()
+        await coordinator._async_update_data()
 
 
 async def test_coordinator_updatefailed_includes_error_for_empty_exception_message(
@@ -74,7 +82,7 @@ async def test_coordinator_updatefailed_includes_error_for_empty_exception_messa
     mock_porkbun_client.ping.side_effect = TimeoutError()
 
     with pytest.raises(UpdateFailed) as exc:
-        await PorkbunDdnsCoordinator(hass, make_entry(hass))._async_update_data()
+        await PorkbunDdnsCoordinator(hass, make_entry(hass, **{CONF_FAILURE_THRESHOLD: 1}))._async_update_data()
 
     placeholders = getattr(exc.value, "translation_placeholders", None) or {}
     assert placeholders.get("error") == "TimeoutError"
@@ -138,7 +146,7 @@ async def test_coordinator_domain_info_fetch_error(hass: HomeAssistant, mock_por
 
 async def test_coordinator_issue_lifecycle(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     mock_porkbun_client.ping.side_effect = [PorkbunApiError("API disabled"), MOCK_IPV4]
-    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass))
+    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass, **{CONF_FAILURE_THRESHOLD: 1}))
 
     with pytest.raises(UpdateFailed):
         await coordinator._async_update_data()
@@ -170,9 +178,12 @@ async def test_coordinator_escalates_domain_failure_logging(
     coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass))
 
     with patch("custom_components.porkbun_ddns.coordinator.LOGGER") as logger:
-        for _ in range(3):
-            with pytest.raises(UpdateFailed):
-                await coordinator._async_update_data()
+        # First two failures are below threshold — return stale data, no raise
+        await coordinator._async_update_data()
+        await coordinator._async_update_data()
+        # Third failure hits threshold — raises UpdateFailed
+        with pytest.raises(UpdateFailed):
+            await coordinator._async_update_data()
 
     assert logger.warning.call_count >= 2
     assert any("update failed" in str(call.args[0]).lower() for call in logger.error.call_args_list)
@@ -220,3 +231,40 @@ async def test_get_ipv6_failure(hass: HomeAssistant, mock_porkbun_client: AsyncM
     session.get = MagicMock(side_effect=aiohttp.ClientError("No IPv6"))
 
     assert await PorkbunDdnsCoordinator(hass, make_entry(hass))._get_ipv6(session) is None
+
+
+async def test_graceful_degradation_returns_stale_data(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    """Transient failures below threshold return stale data instead of raising."""
+    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass))
+
+    # First call succeeds — establishes baseline data
+    data = await coordinator._async_update_data()
+    assert data.public_ipv4 == MOCK_IPV4
+    assert data.last_updated is not None
+    first_updated = data.last_updated
+
+    # Second call fails — below threshold, returns stale data
+    mock_porkbun_client.ping.side_effect = TimeoutError()
+    data = await coordinator._async_update_data()
+    assert data.public_ipv4 == MOCK_IPV4
+    assert data.last_updated == first_updated  # unchanged, stale
+    assert coordinator._consecutive_update_failures == 1
+
+
+async def test_skip_fetch_when_ip_unchanged(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    """When IP hasn't changed, skip_fetch avoids redundant get_records calls."""
+    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass))
+
+    # First call — IP is new, get_records is called
+    await coordinator._async_update_data()
+    first_get_records_count = mock_porkbun_client.get_records.call_count
+
+    # Second call — same IP, get_records should be skipped
+    await coordinator._async_update_data()
+    assert mock_porkbun_client.get_records.call_count == first_get_records_count

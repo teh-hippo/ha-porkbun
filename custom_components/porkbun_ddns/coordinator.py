@@ -20,17 +20,18 @@ from .api import DomainInfo, PorkbunApiError, PorkbunAuthError, PorkbunClient
 from .const import (
     CONF_API_KEY,
     CONF_DOMAIN,
+    CONF_FAILURE_THRESHOLD,
     CONF_IPV4,
     CONF_IPV6,
     CONF_SECRET_KEY,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_STARTUP_DELAY,
     DEFAULT_TTL,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
-    FAILURE_ERROR_THRESHOLD,
     IPV6_DETECT_URL,
     LOGGER,
 )
@@ -79,6 +80,9 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         interval = int(config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
         self._startup_delay = max(0, int(config_entry.options.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY)))
         self._startup_delay_until = datetime.now(tz=UTC) + timedelta(seconds=self._startup_delay)
+        self._failure_threshold = max(
+            1, int(config_entry.options.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD))
+        )
 
         super().__init__(
             hass,
@@ -91,6 +95,8 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         self.data = DdnsData()
         self._startup_delay_logged = False
         self._consecutive_update_failures = 0
+        self._last_ipv4: str | None = None
+        self._last_ipv6: str | None = None
         self._client = PorkbunClient(
             async_get_clientsession(hass),
             str(config_entry.data[CONF_API_KEY]),
@@ -198,9 +204,14 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             if self.ipv6_enabled and data.public_ipv6:
                 updates.append(("AAAA", data.public_ipv6))
 
+            # Determine if any IP has changed since the last successful cycle
+            ip_changed = (self.ipv4_enabled and data.public_ipv4 != self._last_ipv4) or (
+                self.ipv6_enabled and data.public_ipv6 != self._last_ipv6
+            )
+
             for subdomain in ["", *self.subdomains]:
                 for record_type, ip in updates:
-                    await self._update_record(subdomain, record_type, ip)
+                    await self._update_record(subdomain, record_type, ip, skip_fetch=not ip_changed)
 
             # Fetch domain registration info (non-critical, don't fail on error)
             with suppress(PorkbunApiError, aiohttp.ClientError, TimeoutError):
@@ -213,6 +224,8 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                     self._consecutive_update_failures,
                 )
             self._consecutive_update_failures = 0
+            self._last_ipv4 = data.public_ipv4
+            self._last_ipv6 = data.public_ipv6
             data.last_updated = datetime.now(tz=UTC)
             ir.async_delete_issue(self.hass, DOMAIN, issue_id)
             return data
@@ -226,7 +239,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             err_text = _error_text(err)
             self._consecutive_update_failures += 1
             update_log = (
-                LOGGER.error if self._consecutive_update_failures >= FAILURE_ERROR_THRESHOLD else LOGGER.warning
+                LOGGER.error if self._consecutive_update_failures >= self._failure_threshold else LOGGER.warning
             )
             update_log(
                 "Porkbun DDNS (%s) update failed (%d consecutive failures): %s",
@@ -239,6 +252,11 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                 state.ok = False
                 state.error = err_text
                 state.consecutive_failures += 1
+
+            # Below threshold: return stale data to keep entities available
+            if self._consecutive_update_failures < self._failure_threshold:
+                return data
+
             if isinstance(err, PorkbunApiError):
                 ir.async_create_issue(
                     self.hass,
@@ -261,6 +279,8 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         subdomain: str,
         record_type: str,
         target_ip: str,
+        *,
+        skip_fetch: bool = False,
     ) -> None:
         """Check and update a single DNS record if the IP has changed."""
         data = self.data
@@ -269,6 +289,13 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         label = f"{subdomain}.{self._domain}" if subdomain else self._domain
 
         try:
+            if skip_fetch and state.current_ip is not None:
+                # IP hasn't changed and we already know the record — skip the API call
+                LOGGER.debug("%s %s record unchanged (skip_fetch), IP still %s", label, record_type, target_ip)
+                state.ok = True
+                state.error = None
+                return
+
             existing = await self._client.get_records(self._domain, record_type, subdomain)
             current_ip = existing[0].content if existing else None
 
@@ -303,7 +330,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         except (PorkbunApiError, aiohttp.ClientError, TimeoutError) as err:
             err_text = _error_text(err)
             state.consecutive_failures += 1
-            update_log = LOGGER.error if state.consecutive_failures >= FAILURE_ERROR_THRESHOLD else LOGGER.warning
+            update_log = LOGGER.error if state.consecutive_failures >= self._failure_threshold else LOGGER.warning
             update_log(
                 "Failed to update %s %s (%d consecutive failures): %s",
                 label,

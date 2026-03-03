@@ -15,6 +15,7 @@ from pytest_homeassistant_custom_component.common import async_fire_time_changed
 from custom_components.porkbun_ddns import async_remove_config_entry_device
 from custom_components.porkbun_ddns.api import PorkbunApiError, PorkbunAuthError
 from custom_components.porkbun_ddns.const import (
+    CONF_FAILURE_THRESHOLD,
     CONF_STARTUP_DELAY,
     CONF_UPDATE_INTERVAL,
     DEFAULT_UPDATE_INTERVAL,
@@ -47,7 +48,7 @@ async def test_setup_failure_states(
     expected_state: ConfigEntryState,
 ) -> None:
     mock_porkbun_client.ping.side_effect = side_effect
-    entry = make_entry(hass)
+    entry = make_entry(hass, **{CONF_FAILURE_THRESHOLD: 1})
 
     assert await setup_entry(hass, entry) is False
     assert entry.state is expected_state

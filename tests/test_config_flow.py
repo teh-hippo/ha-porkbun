@@ -16,12 +16,14 @@ from custom_components.porkbun_ddns.config_flow import CONF_IGNORE_VERIFICATION,
 from custom_components.porkbun_ddns.const import (
     CONF_API_KEY,
     CONF_DOMAIN,
+    CONF_FAILURE_THRESHOLD,
     CONF_IPV4,
     CONF_IPV6,
     CONF_SECRET_KEY,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_STARTUP_DELAY,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
@@ -104,6 +106,7 @@ async def test_full_flow(hass: HomeAssistant) -> None:
     assert result["options"][CONF_IPV6] is False
     assert result["options"][CONF_UPDATE_INTERVAL] == DEFAULT_UPDATE_INTERVAL
     assert result["options"][CONF_STARTUP_DELAY] == DEFAULT_STARTUP_DELAY
+    assert result["options"][CONF_FAILURE_THRESHOLD] == DEFAULT_FAILURE_THRESHOLD
 
 
 @pytest.mark.parametrize(
@@ -287,6 +290,7 @@ async def test_options_flow_updates_and_reloads(
             CONF_IPV6: True,
             CONF_UPDATE_INTERVAL: 600,
             CONF_STARTUP_DELAY: 300,
+            CONF_FAILURE_THRESHOLD: 5,
         },
     )
 
@@ -297,6 +301,7 @@ async def test_options_flow_updates_and_reloads(
         CONF_IPV6: True,
         CONF_UPDATE_INTERVAL: 600,
         CONF_STARTUP_DELAY: 300,
+        CONF_FAILURE_THRESHOLD: 5,
     }
 
     await hass.async_block_till_done()

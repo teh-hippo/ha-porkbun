@@ -23,12 +23,14 @@ from .api import PorkbunAuthError, PorkbunClient
 from .const import (
     CONF_API_KEY,
     CONF_DOMAIN,
+    CONF_FAILURE_THRESHOLD,
     CONF_IPV4,
     CONF_IPV6,
     CONF_SECRET_KEY,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_STARTUP_DELAY,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
@@ -54,6 +56,7 @@ STEP_USER_SCHEMA = vol.Schema(
 
 UPDATE_INTERVAL_SELECTOR = NumberSelector(NumberSelectorConfig(min=60, step=60, mode=NumberSelectorMode.BOX))
 STARTUP_DELAY_SELECTOR = NumberSelector(NumberSelectorConfig(min=0, step=60, mode=NumberSelectorMode.BOX))
+FAILURE_THRESHOLD_SELECTOR = NumberSelector(NumberSelectorConfig(min=1, max=10, step=1, mode=NumberSelectorMode.BOX))
 
 
 def _domain_schema(
@@ -102,6 +105,7 @@ def _options_from_input(user_input: dict[str, Any], *, include_interval: bool = 
     if include_interval:
         options[CONF_UPDATE_INTERVAL] = int(user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
         options[CONF_STARTUP_DELAY] = int(user_input.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY))
+        options[CONF_FAILURE_THRESHOLD] = int(user_input.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD))
     return options
 
 
@@ -299,6 +303,10 @@ class PorkbunDdnsOptionsFlow(OptionsFlowWithReload):
                         CONF_STARTUP_DELAY,
                         default=current.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY),
                     ): STARTUP_DELAY_SELECTOR,
+                    vol.Optional(
+                        CONF_FAILURE_THRESHOLD,
+                        default=current.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD),
+                    ): FAILURE_THRESHOLD_SELECTOR,
                     vol.Optional(
                         CONF_SUBDOMAINS,
                         default=", ".join(current.get(CONF_SUBDOMAINS, [])),
