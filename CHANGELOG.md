@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v1.7.3 (2026-03-05)
+
+### Build System
+
+- Refresh test deps for python 3.14
+  ([`56493aa`](https://github.com/teh-hippo/ha-porkbun/commit/56493aad5ff58e847134e5899fcf764ed454b366))
+
+### Continuous Integration
+
+- Harden dependabot and release flow
+  ([`32d0de6`](https://github.com/teh-hippo/ha-porkbun/commit/32d0de6e016386e05f574b771c20590723dc89cf))
+
+
 ## v1.7.2 (2026-03-05)
 
 ### Bug Fixes
