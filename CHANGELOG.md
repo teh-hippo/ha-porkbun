@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.7.1 (2026-03-05)
+
+### Bug Fixes
+
+- Correct Copilot reviewer login
+  ([`0fe25ea`](https://github.com/teh-hippo/ha-porkbun/commit/0fe25eaaebdff8a8bb79e733703d5fda51ce561b))
+
+
 ## v1.7.0 (2026-03-05)
 
 ### Features
