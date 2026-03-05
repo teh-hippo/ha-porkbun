@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.7.2 (2026-03-05)
+
+### Bug Fixes
+
+- Bootstrap major-update label in dependabot workflow
+  ([`0671d28`](https://github.com/teh-hippo/ha-porkbun/commit/0671d284c08e1a8994f3ee61e6c9f1555f077cbc))
+
+- Scope major-update label creation to repository
+  ([`712d3fb`](https://github.com/teh-hippo/ha-porkbun/commit/712d3fbd098eaa07d14019445550638ebc5d94cc))
+
+
 ## v1.7.1 (2026-03-05)
 
 ### Bug Fixes
