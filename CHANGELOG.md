@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.7.0 (2026-03-05)
+
+### Features
+
+- Add local brand assets and Python 3.14 support
+  ([`a7ae824`](https://github.com/teh-hippo/ha-porkbun/commit/a7ae824a50aa5645ed3101e929d6b19c0544d11e))
+
+
 ## v1.6.0 (2026-03-03)
 
 ### Features
