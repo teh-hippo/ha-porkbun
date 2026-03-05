@@ -4,7 +4,7 @@ version = "1.6.0"
 description = "Home Assistant integration for Porkbun DDNS"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.12"
+requires-python = ">=3.14,<3.15"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -42,7 +42,7 @@ type = "github"
 token = { env = "GITHUB_TOKEN" }
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 strict = true
 warn_unreachable = true
 
