@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v1.7.4 (2026-03-05)
+
+### Bug Fixes
+
+- **security**: Override vulnerable pillow in dev lock
+  ([`2dfdb77`](https://github.com/teh-hippo/ha-porkbun/commit/2dfdb7785871a67de4abe8711a069bbf34588d47))
+
+### Chores
+
+- **deps**: Bump the actions group across 1 directory with 3 updates
+  ([`4dcf44a`](https://github.com/teh-hippo/ha-porkbun/commit/4dcf44a7316cea2fc59c53eb85eb2838c7d045e1))
+
+
 ## v1.7.3 (2026-03-05)
 
 ### Build System
