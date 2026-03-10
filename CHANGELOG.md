@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v1.7.8 (2026-03-10)
+
+### Bug Fixes
+
+- Correct Python 2 except syntax in IPv6 detection
+  ([`8195f88`](https://github.com/teh-hippo/ha-porkbun/commit/8195f88adf76b333f9ae17995561981e61253d60))
+
+### Chores
+
+- **deps**: Weekly lockfile update
+  ([`f67b7ca`](https://github.com/teh-hippo/ha-porkbun/commit/f67b7ca547b8f2ebf18056175bbef6adb8882543))
+
+### Refactoring
+
+- Remove stale __version__ from const.py
+  ([`527595d`](https://github.com/teh-hippo/ha-porkbun/commit/527595dcd36812343b68e6678f022367386ed7dc))
+
+
 ## v1.7.7 (2026-03-10)
 
 ### Bug Fixes
