@@ -1,6 +1,33 @@
 # CHANGELOG
 
 
+## v1.7.5 (2026-03-10)
+
+### Bug Fixes
+
+- Prevent lockfile-update loop on self-merge
+  ([`28881e0`](https://github.com/teh-hippo/ha-porkbun/commit/28881e044a510dc941689335cc07d4ecc8627120))
+
+### Chores
+
+- **deps**: Weekly lockfile update
+  ([`6a3373a`](https://github.com/teh-hippo/ha-porkbun/commit/6a3373afdae00f82e1232a6ea31edf126c04c887))
+
+- **deps**: Weekly lockfile update
+  ([`79d3bb6`](https://github.com/teh-hippo/ha-porkbun/commit/79d3bb6faa683dcb88389c1252c5a5420c55c1cf))
+
+- **deps-dev**: Update coverage requirement
+  ([`eb9aafe`](https://github.com/teh-hippo/ha-porkbun/commit/eb9aafe625852350bfc7b808c686696253ff60f7))
+
+### Continuous Integration
+
+- Replace Copilot-gated auto-merge with fastify action
+  ([`892fcc7`](https://github.com/teh-hippo/ha-porkbun/commit/892fcc763a72b62640f9a04f12b44fbe007dec30))
+
+- Replace dependabot-automerge with smart auto-merge
+  ([`8c2fed0`](https://github.com/teh-hippo/ha-porkbun/commit/8c2fed072a07c1de8932a77060eedee8b5888c07))
+
+
 ## v1.7.4 (2026-03-05)
 
 ### Bug Fixes
