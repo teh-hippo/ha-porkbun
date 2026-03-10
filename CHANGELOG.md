@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v1.7.7 (2026-03-10)
+
+### Bug Fixes
+
+- Exit 1 on real CI failures, exit 0 on pending checks
+  ([`83ba8a6`](https://github.com/teh-hippo/ha-porkbun/commit/83ba8a6d7fa7b3f04c980b6d3e5737a811f747b6))
+
+### Chores
+
+- **deps**: Weekly lockfile update
+  ([`c034dd6`](https://github.com/teh-hippo/ha-porkbun/commit/c034dd6afae366882b55ccc3e99eb90550fdd394))
+
+- **deps**: Weekly lockfile update
+  ([`710660f`](https://github.com/teh-hippo/ha-porkbun/commit/710660f1a07c053e302761992b51a05a70eed5fb))
+
+
 ## v1.7.6 (2026-03-10)
 
 ### Bug Fixes
