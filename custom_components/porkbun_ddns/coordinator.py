@@ -347,6 +347,6 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
             async with session.get(IPV6_DETECT_URL, timeout=aiohttp.ClientTimeout(total=10)) as resp:
                 if resp.status == 200:
                     return (await resp.text()).strip()
-        except aiohttp.ClientError, TimeoutError:
+        except (aiohttp.ClientError, TimeoutError):
             LOGGER.warning("Failed to detect IPv6 address; skipping IPv6 update")
         return None
