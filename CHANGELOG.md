@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.7.6 (2026-03-10)
+
+### Bug Fixes
+
+- Auto-merge exits cleanly when checks still running
+  ([`4b16412`](https://github.com/teh-hippo/ha-porkbun/commit/4b1641203daac31a85bc1e0c6dc47baa677fdda5))
+
+
 ## v1.7.5 (2026-03-10)
 
 ### Bug Fixes
