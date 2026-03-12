@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v1.7.9 (2026-03-12)
+
+### Build System
+
+- Tighten requires-python to >=3.14.2 for HA 2026.3.1 compatibility
+  ([`0ca6eb1`](https://github.com/teh-hippo/ha-porkbun/commit/0ca6eb1774a58b7dd1557543ed8c89189110b56d))
+
+### Chores
+
+- **deps**: Bump peter-evans/create-pull-request in the actions group
+  ([`e062267`](https://github.com/teh-hippo/ha-porkbun/commit/e062267b0dc8fde4333663265e4bfdf60d3880bc))
+
+- **deps**: Weekly lockfile update
+  ([`1d42211`](https://github.com/teh-hippo/ha-porkbun/commit/1d42211cd7dcab11d3a54eef5f56943d114fc577))
+
+- **deps**: Weekly lockfile update
+  ([`69cf41f`](https://github.com/teh-hippo/ha-porkbun/commit/69cf41fe292435ffa90a8a759d49499a9c53db92))
+
+
 ## v1.7.8 (2026-03-10)
 
 ### Bug Fixes
