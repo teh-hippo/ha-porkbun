@@ -27,7 +27,7 @@ jobs:
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           case "$HEAD_BRANCH" in
-            dependabot/*|auto/*)
+            renovate/*|auto/*)
               echo "✅ Automated branch: $HEAD_BRANCH" ;;
             *)
               echo "Not automated — skipping"
