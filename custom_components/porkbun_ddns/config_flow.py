@@ -133,7 +133,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
             await req
         except PorkbunAuthError:
             return auth_error
-        except (aiohttp.ClientError, TimeoutError):
+        except aiohttp.ClientError, TimeoutError:
             return "cannot_connect"
         except Exception:
             LOGGER.exception("Unexpected error during API call")
