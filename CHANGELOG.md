@@ -1,6 +1,55 @@
 # CHANGELOG
 
 
+## v1.7.10 (2026-03-22)
+
+### Bug Fixes
+
+- Add parens to multi-except clause for Python 3.13 compat
+  ([`7870130`](https://github.com/teh-hippo/ha-porkbun/commit/78701306e3f94f9ee1860910e2ec36f7530344c1))
+
+- Install uv in semantic-release build_command
+  ([`3e550f1`](https://github.com/teh-hippo/ha-porkbun/commit/3e550f1fa5b5126bb1f1bfad3608d5bd5d2d179b))
+
+### Build System
+
+- **deps-dev**: Bump pytest-homeassistant-custom-component
+  ([`baddf7b`](https://github.com/teh-hippo/ha-porkbun/commit/baddf7b109bb3c68c5d7edaa9a6f556cc853dff9))
+
+### Chores
+
+- **deps**: Weekly lockfile update
+  ([`cb726f0`](https://github.com/teh-hippo/ha-porkbun/commit/cb726f0a3efb570ddac7a90495cb4d737f1fb4fb))
+
+- **deps**: Weekly lockfile update
+  ([`9468f2c`](https://github.com/teh-hippo/ha-porkbun/commit/9468f2c0ca53a85afee7f59dd5c17715949d94d5))
+
+- **deps**: Weekly lockfile update
+  ([`28faee4`](https://github.com/teh-hippo/ha-porkbun/commit/28faee45da07e5f7ea69552850cb233369802f81))
+
+- **deps**: Weekly lockfile update
+  ([`8703104`](https://github.com/teh-hippo/ha-porkbun/commit/8703104930521215c5990e3d41e85b46220e9e27))
+
+- **deps**: Weekly lockfile update
+  ([`d96c3c0`](https://github.com/teh-hippo/ha-porkbun/commit/d96c3c0dbaa5cb9067ec1df287bd18de48c941ef))
+
+### Code Style
+
+- Fix ruff formatting
+  ([`ae86a9a`](https://github.com/teh-hippo/ha-porkbun/commit/ae86a9a68cdff882c463c562d63a5b3c5b614e0d))
+
+### Continuous Integration
+
+- Fix build_command, remove lockfile-update workflow
+  ([`1f49bb8`](https://github.com/teh-hippo/ha-porkbun/commit/1f49bb83d51aa5a845e4baef2a1827799f4173be))
+
+- Migrate from Dependabot to Renovate
+  ([`1773e81`](https://github.com/teh-hippo/ha-porkbun/commit/1773e8189dfbc05c38c9fc411779dbab9be7e08e))
+
+- Stop cascade of lockfile/release chore commits
+  ([`f40d398`](https://github.com/teh-hippo/ha-porkbun/commit/f40d39862634d4b220fb6946bae66f1f11cc4d87))
+
+
 ## v1.7.9 (2026-03-12)
 
 ### Build System
