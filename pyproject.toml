@@ -19,7 +19,7 @@ fail_under = 90
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["custom_components/porkbun_ddns/manifest.json:version"]
-build_command = ""
+build_command = "uv lock"
 commit_message = "chore(release): {version}"
 tag_format = "v{version}"
 
