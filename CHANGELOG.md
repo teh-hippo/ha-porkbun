@@ -1,6 +1,42 @@
 # CHANGELOG
 
 
+## v1.7.11 (2026-03-23)
+
+### Bug Fixes
+
+- **ci**: Pass RELEASE_TOKEN to checkout for git push auth
+  ([`c40a230`](https://github.com/teh-hippo/ha-porkbun/commit/c40a230f111efd00abc5b760a5a5c1e8cfee0fe3))
+
+- **ci**: Use RELEASE_TOKEN for semantic-release push
+  ([`e1d57b4`](https://github.com/teh-hippo/ha-porkbun/commit/e1d57b49a6e2880390eb1cbda6066a578b1a1c75))
+
+### Build System
+
+- Loosen dev dependency version constraints
+  ([`b1278ed`](https://github.com/teh-hippo/ha-porkbun/commit/b1278ed36e6ad5a74ad2c1ae5bbd51b17fcd77d9))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python Docker tag to v3.14
+  ([`5c14cc8`](https://github.com/teh-hippo/ha-porkbun/commit/5c14cc88a51ba4521efe68cc7427f15ab7251015))
+
+- **deps**: Upgrade
+  ([`89d6d11`](https://github.com/teh-hippo/ha-porkbun/commit/89d6d114ea907ed5e4050e9cb99e940c12c05674))
+
+- **deps**: Upgrade
+  ([`4fb60d1`](https://github.com/teh-hippo/ha-porkbun/commit/4fb60d13c2d721a9b2f4fb7fb3f1153b2b45cffb))
+
+### Continuous Integration
+
+- Fix automerge config for all update types
+  ([`bd7b25c`](https://github.com/teh-hippo/ha-porkbun/commit/bd7b25c0c89ae303bc1ec1b8eb602ac2dc3d6081))
+
+- Remove auto-merge workflow, use Renovate automerge
+  ([`bd148f1`](https://github.com/teh-hippo/ha-porkbun/commit/bd148f1b9bdda2ebcf0a5c3a549314e00a30ed0f))
+
+- Standardise renovate.json with forkProcessing
+  ([`de7f7fd`](https://github.com/teh-hippo/ha-porkbun/commit/de7f7fddfa4465e7bd9e179f2140b40aeae543f2))
+
+
 ## v1.7.10 (2026-03-22)
 
 ### Bug Fixes
