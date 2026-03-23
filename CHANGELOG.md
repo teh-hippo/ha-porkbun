@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v1.7.12 (2026-03-23)
+
+### Bug Fixes
+
+- Add module-level docstring comment
+  ([`34e1290`](https://github.com/teh-hippo/ha-porkbun/commit/34e12900db3e163279389223dbb206f5a674cab5))
+
+- Expand module docstring with integration description
+  ([`e10ae6c`](https://github.com/teh-hippo/ha-porkbun/commit/e10ae6c824a40de40673abcfb2235d3f2d085613))
+
+- Restore __init__.py content
+  ([`5c0f6df`](https://github.com/teh-hippo/ha-porkbun/commit/5c0f6df4e7693ffee240fab7d28460d4dbab42ae))
+
+
 ## v1.7.11 (2026-03-23)
 
 ### Bug Fixes
