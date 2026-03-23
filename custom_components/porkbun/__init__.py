@@ -1,1 +1,0 @@
-# Porkbun DDNS integration
