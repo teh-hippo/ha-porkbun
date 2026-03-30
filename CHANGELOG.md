@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v1.7.13 (2026-03-30)
+
+### Build System
+
+- **deps**: Upgrade
+  ([`41d7a7c`](https://github.com/teh-hippo/ha-porkbun/commit/41d7a7cded5df3441683ea9fb3a3e74c582899c4))
+
+### Continuous Integration
+
+- Enable global automerge and fix semantic-release patch_tags
+  ([`2645403`](https://github.com/teh-hippo/ha-porkbun/commit/26454030c36e22b9d2183cc67d4f309aa9d9c480))
+
+
 ## v1.7.12 (2026-03-23)
 
 ### Bug Fixes
