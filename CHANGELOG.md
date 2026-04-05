@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.7.17 (2026-04-05)
+
+### Build System
+
+- Update Renovate config for weekly grouped updates
+  ([`ef0a330`](https://github.com/teh-hippo/ha-porkbun/commit/ef0a3304bdd5e7d70d01ceb06e431b7e7bc2beb0))
+
+
 ## v1.7.16 (2026-03-30)
 
 ### Build System
