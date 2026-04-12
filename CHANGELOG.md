@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.7.20 (2026-04-12)
+
+### Build System
+
+- **deps**: Update softprops/action-gh-release action to v3
+  ([`fecc9d2`](https://github.com/teh-hippo/ha-porkbun/commit/fecc9d2335004adb8c82a247bfc17b8bfbc7f4f9))
+
+
 ## v1.7.19 (2026-04-05)
 
 ### Build System
