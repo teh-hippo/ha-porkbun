@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.7.24 (2026-04-14)
+
+### Build System
+
+- **deps**: Update dependency pytest to v9.0.3 [SECURITY]
+  ([`9c5ab73`](https://github.com/teh-hippo/ha-porkbun/commit/9c5ab73a8b2e09ccb439895b38f09de3614342bc))
+
+
 ## v1.7.23 (2026-04-12)
 
 ### Build System
