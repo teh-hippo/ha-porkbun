@@ -2,7 +2,7 @@ name: Validate
 
 on:
   push:
-    branches: [master, "copilot/**", "dependabot/**"]
+    branches: [master, "copilot/**"]
   pull_request:
     branches: [master]
   schedule:
