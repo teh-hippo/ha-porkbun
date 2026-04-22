@@ -81,9 +81,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
         interval = int(config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
         self._startup_delay = max(0, int(config_entry.options.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY)))
         # One-shot bypass set by config/options/reauth flows after a successful ping.
-        force_refresh: set[str] = hass.data.setdefault(DOMAIN, {}).setdefault(
-            DATA_FORCE_IMMEDIATE_REFRESH, set()
-        )
+        force_refresh: set[str] = hass.data.setdefault(DOMAIN, {}).setdefault(DATA_FORCE_IMMEDIATE_REFRESH, set())
         if config_entry.entry_id in force_refresh:
             force_refresh.discard(config_entry.entry_id)
             self._startup_delay_until = datetime.now(tz=UTC)

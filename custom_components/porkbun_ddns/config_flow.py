@@ -45,6 +45,7 @@ def _mark_immediate_refresh(hass: Any, entry_id: str) -> None:
     """Tell the next coordinator init for this entry to skip the startup delay."""
     hass.data.setdefault(DOMAIN, {}).setdefault(DATA_FORCE_IMMEDIATE_REFRESH, set()).add(entry_id)
 
+
 STEP_CREDENTIALS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_KEY): str,
