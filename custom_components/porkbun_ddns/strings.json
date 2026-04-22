@@ -94,8 +94,6 @@
   },
   "issues": {
     "api_access_disabled": {
-      "title": "API access not enabled for {domain}",
-      "description": "The Porkbun API returned an error for **{domain}**. Please ensure API access is enabled in your Porkbun domain settings.\n\nWithout API access enabled, DDNS updates cannot be performed.",
       "fix_flow": {
         "step": {
           "confirm": {
