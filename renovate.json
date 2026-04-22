@@ -4,6 +4,8 @@
   "labels": ["dependencies"],
   "timezone": "Australia/Sydney",
   "schedule": ["before 7am on Monday"],
+  "automergeSchedule": ["at any time"],
+  "prConcurrentLimit": 5,
   "automerge": true,
   "platformAutomerge": true,
   "lockFileMaintenance": {
