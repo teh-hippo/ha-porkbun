@@ -6,6 +6,9 @@ LOGGER = getLogger(__package__)
 
 DOMAIN = "porkbun_ddns"
 
+# hass.data[DOMAIN] key: set of entry_ids whose next coordinator init skips startup delay.
+DATA_FORCE_IMMEDIATE_REFRESH = "force_immediate_refresh"
+
 DEFAULT_UPDATE_INTERVAL = 300  # 5 minutes
 DEFAULT_STARTUP_DELAY = 300  # 5 minutes
 DEFAULT_TTL = 600  # Porkbun minimum

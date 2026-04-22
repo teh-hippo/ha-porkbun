@@ -18,6 +18,7 @@ type PorkbunDdnsConfigEntry = ConfigEntry[PorkbunDdnsCoordinator]
 
 async def async_setup_entry(hass: HomeAssistant, entry: PorkbunDdnsConfigEntry) -> bool:
     """Set up Porkbun DDNS from a config entry."""
+    hass.data.setdefault(DOMAIN, {})
     coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     await coordinator.async_config_entry_first_refresh()

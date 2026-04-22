@@ -27,6 +27,7 @@ from .const import (
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DATA_FORCE_IMMEDIATE_REFRESH,
     DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_STARTUP_DELAY,
     DEFAULT_TTL,
@@ -79,7 +80,15 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
 
         interval = int(config_entry.options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL))
         self._startup_delay = max(0, int(config_entry.options.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY)))
-        self._startup_delay_until = datetime.now(tz=UTC) + timedelta(seconds=self._startup_delay)
+        # One-shot bypass set by config/options/reauth flows after a successful ping.
+        force_refresh: set[str] = hass.data.setdefault(DOMAIN, {}).setdefault(
+            DATA_FORCE_IMMEDIATE_REFRESH, set()
+        )
+        if config_entry.entry_id in force_refresh:
+            force_refresh.discard(config_entry.entry_id)
+            self._startup_delay_until = datetime.now(tz=UTC)
+        else:
+            self._startup_delay_until = datetime.now(tz=UTC) + timedelta(seconds=self._startup_delay)
         self._failure_threshold = max(
             1, int(config_entry.options.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD))
         )

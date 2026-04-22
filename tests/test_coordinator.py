@@ -17,6 +17,7 @@ from custom_components.porkbun_ddns.const import (
     CONF_IPV6,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
+    DATA_FORCE_IMMEDIATE_REFRESH,
     DOMAIN,
 )
 from custom_components.porkbun_ddns.coordinator import PorkbunDdnsCoordinator
@@ -103,6 +104,30 @@ async def test_startup_delay_defers_first_update(
     freezer.move_to("2026-02-18 12:05:01+00:00")
     data = await coordinator._async_update_data()
     assert data.public_ipv4 == MOCK_IPV4
+    assert mock_porkbun_client.ping.call_count == 1
+
+
+async def test_force_immediate_refresh_skips_startup_delay(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+    freezer,
+) -> None:
+    """A reconfigure/options/reauth flow can request a one-shot delay bypass."""
+    freezer.move_to("2026-02-18 12:00:00+00:00")
+    entry = make_entry(hass, **{CONF_STARTUP_DELAY: 300})
+    hass.data.setdefault(DOMAIN, {}).setdefault(DATA_FORCE_IMMEDIATE_REFRESH, set()).add(entry.entry_id)
+
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+    data = await coordinator._async_update_data()
+
+    assert data.public_ipv4 == MOCK_IPV4
+    assert mock_porkbun_client.ping.call_count == 1
+    assert entry.entry_id not in hass.data[DOMAIN][DATA_FORCE_IMMEDIATE_REFRESH]
+
+    # Bypass is one-shot: a fresh coordinator for the same entry waits again.
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+    data = await coordinator._async_update_data()
+    assert data.last_updated is None
     assert mock_porkbun_client.ping.call_count == 1
 
 

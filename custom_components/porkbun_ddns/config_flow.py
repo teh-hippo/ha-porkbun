@@ -30,6 +30,7 @@ from .const import (
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
+    DATA_FORCE_IMMEDIATE_REFRESH,
     DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_STARTUP_DELAY,
     DEFAULT_UPDATE_INTERVAL,
@@ -38,6 +39,11 @@ from .const import (
 )
 
 CONF_IGNORE_VERIFICATION = "ignore_verification"
+
+
+def _mark_immediate_refresh(hass: Any, entry_id: str) -> None:
+    """Tell the next coordinator init for this entry to skip the startup delay."""
+    hass.data.setdefault(DOMAIN, {}).setdefault(DATA_FORCE_IMMEDIATE_REFRESH, set()).add(entry_id)
 
 STEP_CREDENTIALS_SCHEMA = vol.Schema(
     {
@@ -224,6 +230,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_SECRET_KEY: user_input[CONF_SECRET_KEY],
                     },
                 )
+                _mark_immediate_refresh(self.hass, entry.entry_id)
                 await self.hass.config_entries.async_reload(entry.entry_id)
                 return self.async_abort(reason="reauth_successful")
 
@@ -253,6 +260,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
             elif error := await self._validate_domain(client, domain_name):
                 errors["base"] = error
             else:
+                _mark_immediate_refresh(self.hass, entry.entry_id)
                 return self.async_update_reload_and_abort(
                     entry,
                     unique_id=domain_name,
@@ -274,6 +282,7 @@ class PorkbunDdnsOptionsFlow(OptionsFlowWithReload):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
+            _mark_immediate_refresh(self.hass, self.config_entry.entry_id)
             return self.async_create_entry(data=_options_from_input(user_input, include_interval=True))
 
         current = self.config_entry.options
