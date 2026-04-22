@@ -347,9 +347,6 @@ async def test_reconfigure_flow(
                 CONF_API_KEY: new_api_key,
                 CONF_SECRET_KEY: new_secret_key,
                 CONF_DOMAIN: MOCK_DOMAIN,
-                CONF_SUBDOMAINS: "www, api",
-                CONF_IPV4: True,
-                CONF_IPV6: True,
             },
         )
 
@@ -384,9 +381,6 @@ async def test_reconfigure_flow_requires_secret_key(
                 {
                     CONF_API_KEY: MOCK_API_KEY,
                     CONF_DOMAIN: MOCK_DOMAIN,
-                    CONF_SUBDOMAINS: "www, api",
-                    CONF_IPV4: True,
-                    CONF_IPV6: True,
                 },
             )
 

@@ -262,11 +262,12 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                     self.hass,
                     DOMAIN,
                     issue_id,
-                    is_fixable=False,
+                    is_fixable=True,
                     is_persistent=False,
                     severity=ir.IssueSeverity.ERROR,
                     translation_key="api_access_disabled",
                     translation_placeholders={"domain": self._domain},
+                    data={"entry_id": self.config_entry.entry_id},
                 )
             raise UpdateFailed(
                 translation_domain=DOMAIN,

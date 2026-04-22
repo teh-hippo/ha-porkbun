@@ -80,18 +80,12 @@ def _reconfigure_schema(
     *,
     api_key_default: str,
     domain_default: str,
-    subdomains_default: str,
-    ipv4_default: bool,
-    ipv6_default: bool,
 ) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_API_KEY, default=api_key_default): str,
             vol.Required(CONF_SECRET_KEY): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
             vol.Required(CONF_DOMAIN, default=domain_default): str,
-            vol.Optional(CONF_SUBDOMAINS, default=subdomains_default): str,
-            vol.Optional(CONF_IPV4, default=ipv4_default): bool,
-            vol.Optional(CONF_IPV6, default=ipv6_default): bool,
         }
     )
 
@@ -240,16 +234,12 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_reconfigure(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Handle reconfiguration of domain settings."""
+        """Handle reconfiguration of credentials and domain."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         assert entry is not None
-        current = entry.options
         schema = _reconfigure_schema(
             api_key_default=str(entry.data.get(CONF_API_KEY, "")),
             domain_default=str(entry.data.get(CONF_DOMAIN, "")),
-            subdomains_default=", ".join(current.get(CONF_SUBDOMAINS, [])),
-            ipv4_default=bool(current.get(CONF_IPV4, True)),
-            ipv6_default=bool(current.get(CONF_IPV6, False)),
         )
         errors: dict[str, str] = {}
 
@@ -272,10 +262,6 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_API_KEY: api_key,
                         CONF_SECRET_KEY: secret_key,
                         CONF_DOMAIN: domain_name,
-                    },
-                    options={
-                        **entry.options,
-                        **_options_from_input(user_input),
                     },
                 )
 

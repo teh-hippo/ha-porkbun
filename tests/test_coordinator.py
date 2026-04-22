@@ -146,14 +146,18 @@ async def test_coordinator_domain_info_fetch_error(hass: HomeAssistant, mock_por
 
 async def test_coordinator_issue_lifecycle(hass: HomeAssistant, mock_porkbun_client: AsyncMock) -> None:
     mock_porkbun_client.ping.side_effect = [PorkbunApiError("API disabled"), MOCK_IPV4]
-    coordinator = PorkbunDdnsCoordinator(hass, make_entry(hass, **{CONF_FAILURE_THRESHOLD: 1}))
+    entry = make_entry(hass, **{CONF_FAILURE_THRESHOLD: 1})
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
 
     with pytest.raises(UpdateFailed):
         await coordinator._async_update_data()
 
     issue_id = f"api_access_{MOCK_DOMAIN}"
     issue_reg = ir.async_get(hass)
-    assert issue_reg.async_get_issue(DOMAIN, issue_id) is not None
+    issue = issue_reg.async_get_issue(DOMAIN, issue_id)
+    assert issue is not None
+    assert issue.is_fixable is True
+    assert issue.data == {"entry_id": entry.entry_id}
 
     await coordinator._async_update_data()
     assert issue_reg.async_get_issue(DOMAIN, issue_id) is None

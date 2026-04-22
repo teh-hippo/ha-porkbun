@@ -40,11 +40,19 @@ It keeps A/AAAA DNS records synced with your public IP.
 
 Home Assistant → **Settings** → **Devices & Services** → **Add Integration** → **Porkbun DDNS**.
 
-Options:
+Options (Configure button on the integration card):
 - Update interval (default `300s`, minimum `60s`)
 - Startup delay (default `300s`)
 - Subdomains (comma-separated, e.g. `www, vpn`)
 - IPv4 / IPv6 toggles
+
+### Changing API credentials or the domain
+
+The Configure button only exposes runtime tuning. To change the **API key**,
+**secret**, or **domain**, open **Settings → Devices & Services → Porkbun DDNS**,
+click the **3-dot menu** on the integration entry, and choose **Reconfigure**.
+The same flow is launched directly from the Repairs notification when API
+access fails.
 
 ## Entities
 

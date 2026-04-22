@@ -45,22 +45,16 @@
       },
       "reconfigure": {
         "title": "Reconfigure Porkbun DDNS",
-        "description": "Update the domain and subdomain settings for this integration.",
+        "description": "Update the API credentials and domain for this integration. Subdomain selection and per-record toggles live under Configure (options).",
         "data": {
           "api_key": "API Key",
           "secret_key": "Secret API Key",
-          "domain": "Domain",
-          "subdomains": "Subdomains",
-          "ipv4": "Update IPv4 (A record)",
-          "ipv6": "Update IPv6 (AAAA record)"
+          "domain": "Domain"
         },
         "data_description": {
           "api_key": "Your Porkbun API key from porkbun.com/account/api.",
           "secret_key": "Your Porkbun secret API key paired with the API key above.",
-          "domain": "The root domain to update (e.g., example.com).",
-          "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
-          "ipv4": "Create or update A records with your public IPv4 address.",
-          "ipv6": "Create or update AAAA records with your public IPv6 address."
+          "domain": "The root domain to update (e.g., example.com)."
         }
       }
     },
@@ -101,7 +95,15 @@
   "issues": {
     "api_access_disabled": {
       "title": "API access not enabled for {domain}",
-      "description": "The Porkbun API returned an error for **{domain}**. Please ensure API access is enabled in your Porkbun domain settings.\n\nWithout API access enabled, DDNS updates cannot be performed."
+      "description": "The Porkbun API returned an error for **{domain}**. Please ensure API access is enabled in your Porkbun domain settings.\n\nWithout API access enabled, DDNS updates cannot be performed.",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Fix Porkbun API access for {domain}",
+            "description": "Porkbun returned an API error for **{domain}**. This usually means the domain's API access is disabled in the Porkbun dashboard, or the API key/secret is wrong.\n\nSubmit to open the Reconfigure flow where you can re-enter your API credentials and confirm the domain."
+          }
+        }
+      }
     }
   },
   "exceptions": {
