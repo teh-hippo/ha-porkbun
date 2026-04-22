@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.8.1 (2026-04-22)
+
+### Build System
+
+- **deps**: Decouple automerge from weekly schedule
+  ([`75e940f`](https://github.com/teh-hippo/ha-porkbun/commit/75e940fb3cba9db87eba6a416289d1b8d4335364))
+
+
 ## v1.8.0 (2026-04-22)
 
 ### Bug Fixes
