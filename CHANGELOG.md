@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v1.8.2 (2026-04-22)
+
+### Bug Fixes
+
+- Skip startup delay after reconfigure, reauth, and options save
+  ([`e477089`](https://github.com/teh-hippo/ha-porkbun/commit/e477089c9bf04b339b0f16a817bc89995abba1ae))
+
+### Code Style
+
+- Ruff format
+  ([`3734a6a`](https://github.com/teh-hippo/ha-porkbun/commit/3734a6af65766e326a0b1f030fe58718adda0675))
+
+
 ## v1.8.1 (2026-04-22)
 
 ### Build System
