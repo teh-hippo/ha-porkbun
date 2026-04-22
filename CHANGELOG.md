@@ -1,6 +1,27 @@
 # CHANGELOG
 
 
+## v1.8.0 (2026-04-22)
+
+### Bug Fixes
+
+- Drop top-level title/description on fixable repair issue
+  ([`1796fa0`](https://github.com/teh-hippo/ha-porkbun/commit/1796fa0ce19a082b14b41d1ea78e00f701d9ae9f))
+
+- Restore required issue title; only description conflicted with fix_flow
+  ([`cca977c`](https://github.com/teh-hippo/ha-porkbun/commit/cca977c4ace3a775c684ce4e652274f1a1105d76))
+
+### Build System
+
+- **deps**: Include major updates in Renovate with automerge
+  ([`52f9ce0`](https://github.com/teh-hippo/ha-porkbun/commit/52f9ce002e4337604c8505b21fc99dcc58443179))
+
+### Features
+
+- Launch reconfigure flow from API-access repair issue
+  ([`eefa3f3`](https://github.com/teh-hippo/ha-porkbun/commit/eefa3f307bead83517f5af61742b2dcfaf91a15e))
+
+
 ## v1.7.28 (2026-04-19)
 
 ### Build System
