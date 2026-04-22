@@ -94,6 +94,7 @@
   },
   "issues": {
     "api_access_disabled": {
+      "title": "API access not enabled for {domain}",
       "fix_flow": {
         "step": {
           "confirm": {
