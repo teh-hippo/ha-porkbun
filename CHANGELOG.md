@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.8.3 (2026-04-26)
+
+### Build System
+
+- **deps**: Update astral-sh/setup-uv action to v8
+  ([`f47689d`](https://github.com/teh-hippo/ha-porkbun/commit/f47689df59debb7b7ce9b01478071d59fb1e786b))
+
+- **deps**: Upgrade
+  ([`7939a2c`](https://github.com/teh-hippo/ha-porkbun/commit/7939a2c1942f0deb6291b6c6dcc1d8be20e0fe51))
+
+
 ## v1.8.2 (2026-04-22)
 
 ### Bug Fixes
