@@ -1,6 +1,6 @@
 [project]
 name = "ha-porkbun"
-version = "1.8.5"
+version = "1.8.6"
 description = "Home Assistant integration for Porkbun DDNS"
 readme = "README.md"
 license = "MIT"
