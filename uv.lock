@@ -854,7 +854,7 @@ wheels = [
 
 [[package]]
 name = "ha-porkbun"
-version = "1.8.7"
+version = "1.8.8"
 source = { virtual = "." }
 
 [package.dev-dependencies]
