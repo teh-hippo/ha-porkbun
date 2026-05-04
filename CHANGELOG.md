@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.8.13 (2026-05-04)
+
+### Build System
+
+- **renovate**: Align config with canonical baseline
+  ([`d8cfed9`](https://github.com/teh-hippo/ha-porkbun/commit/d8cfed98a0a431d6976763eac508c4004784d907))
+
+
 ## v1.8.12 (2026-05-04)
 
 ### Build System
