@@ -16,6 +16,12 @@ branch = true
 [tool.coverage.report]
 fail_under = 90
 
+[tool.uv]
+override-dependencies = [
+    "PyJWT>=2.12.0",
+    "pytest>=9.0.3",
+]
+
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["custom_components/porkbun_ddns/manifest.json:version"]
