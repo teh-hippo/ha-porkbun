@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.8.14 (2026-05-04)
+
+### Bug Fixes
+
+- **deps**: Force PyJWT>=2.12.0 and pytest>=9.0.3 via uv overrides
+  ([`f064eee`](https://github.com/teh-hippo/ha-porkbun/commit/f064eeec0bda8ab7ade13ebf087f8ac4118a73a6))
+
+
 ## v1.8.13 (2026-05-04)
 
 ### Build System
