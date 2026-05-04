@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.8.12 (2026-05-04)
+
+### Build System
+
+- Drop redundant pytest/pytest-asyncio/coverage pins
+  ([`f973f4f`](https://github.com/teh-hippo/ha-porkbun/commit/f973f4fba03045f8736c9b01867c3cbdc615823f))
+
+
 ## v1.8.11 (2026-05-03)
 
 ### Build System
