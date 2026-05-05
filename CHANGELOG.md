@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.9.0 (2026-05-05)
+
+### Features
+
+- Opt-out toggle for managing the root domain record
+  ([`bfb2e1f`](https://github.com/teh-hippo/ha-porkbun/commit/bfb2e1ff7cde807635eaf0f85846c101114438f4))
+
+
 ## v1.8.14 (2026-05-04)
 
 ### Bug Fixes
