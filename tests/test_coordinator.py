@@ -15,6 +15,7 @@ from custom_components.porkbun_ddns.api import DnsRecord, PorkbunApiError, Porkb
 from custom_components.porkbun_ddns.const import (
     CONF_FAILURE_THRESHOLD,
     CONF_IPV6,
+    CONF_MANAGE_ROOT,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     DATA_FORCE_IMMEDIATE_REFRESH,
@@ -297,3 +298,66 @@ async def test_skip_fetch_when_ip_unchanged(
     # Second call — same IP, get_records should be skipped
     await coordinator._async_update_data()
     assert mock_porkbun_client.get_records.call_count == first_get_records_count
+
+
+async def test_manage_root_disabled_skips_apex(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    """With manage_root=False the coordinator only manages configured subdomains."""
+    entry = make_entry(hass, **{CONF_MANAGE_ROOT: False, CONF_SUBDOMAINS: ["www"]})
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+
+    data = await coordinator._async_update_data()
+
+    assert set(data.records) == {"www_A"}
+    assert mock_porkbun_client.create_record.call_count == 1
+    create_call = mock_porkbun_client.create_record.call_args
+    # create_record(self._domain, record_type, target_ip, subdomain, ttl) — subdomain is positional 4
+    assert create_call.args[3] == "www"
+    # The apex (subdomain="") must never be queried or created.
+    for call in mock_porkbun_client.get_records.call_args_list:
+        assert call.args[2] != ""
+    for call in mock_porkbun_client.create_record.call_args_list:
+        assert call.args[3] != ""
+
+
+async def test_manage_root_disabled_with_no_subdomains_runs_cleanly(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    """Degenerate state (no managed records) cycles without error and never hits Porkbun."""
+    entry = make_entry(hass, **{CONF_MANAGE_ROOT: False, CONF_SUBDOMAINS: []})
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+
+    data = await coordinator._async_update_data()
+
+    assert data.records == {}
+    assert data.last_updated is not None
+    assert mock_porkbun_client.get_records.call_count == 0
+    assert mock_porkbun_client.create_record.call_count == 0
+    assert mock_porkbun_client.edit_record_by_name_type.call_count == 0
+
+
+@pytest.mark.parametrize(
+    ("manage_root", "subdomains", "expected"),
+    [
+        (True, [], [MOCK_DOMAIN]),
+        (True, ["www"], [MOCK_DOMAIN, f"www.{MOCK_DOMAIN}"]),
+        (True, ["www", "vpn"], [MOCK_DOMAIN, f"www.{MOCK_DOMAIN}", f"vpn.{MOCK_DOMAIN}"]),
+        (False, ["www"], [f"www.{MOCK_DOMAIN}"]),
+        (False, ["www", "vpn"], [f"www.{MOCK_DOMAIN}", f"vpn.{MOCK_DOMAIN}"]),
+        (False, [], []),
+    ],
+)
+async def test_managed_records_property_respects_manage_root(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+    manage_root: bool,
+    subdomains: list[str],
+    expected: list[str],
+) -> None:
+    entry = make_entry(hass, **{CONF_MANAGE_ROOT: manage_root, CONF_SUBDOMAINS: subdomains})
+    coordinator = PorkbunDdnsCoordinator(hass, entry)
+    assert coordinator.managed_records == expected
+    assert coordinator.manage_root is manage_root

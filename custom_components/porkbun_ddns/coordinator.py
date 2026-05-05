@@ -23,12 +23,14 @@ from .const import (
     CONF_FAILURE_THRESHOLD,
     CONF_IPV4,
     CONF_IPV6,
+    CONF_MANAGE_ROOT,
     CONF_SECRET_KEY,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
     DATA_FORCE_IMMEDIATE_REFRESH,
     DEFAULT_FAILURE_THRESHOLD,
+    DEFAULT_MANAGE_ROOT,
     DEFAULT_STARTUP_DELAY,
     DEFAULT_TTL,
     DEFAULT_UPDATE_INTERVAL,
@@ -138,7 +140,17 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
     @property
     def managed_records(self) -> list[str]:
         """Return all managed hostnames (root + configured subdomains)."""
-        return [f"{sub}.{self._domain}" if sub else self._domain for sub in [""] + self.subdomains]
+        return [f"{sub}.{self._domain}" if sub else self._domain for sub in self._record_targets]
+
+    @property
+    def manage_root(self) -> bool:
+        """Return whether the root domain record is managed."""
+        return bool(self.config_entry.options.get(CONF_MANAGE_ROOT, DEFAULT_MANAGE_ROOT))
+
+    @property
+    def _record_targets(self) -> list[str]:
+        """Subdomain labels iterated each cycle (root represented as '')."""
+        return ["", *self.subdomains] if self.manage_root else list(self.subdomains)
 
     @property
     def ipv4_enabled(self) -> bool:
@@ -216,7 +228,7 @@ class PorkbunDdnsCoordinator(DataUpdateCoordinator[DdnsData]):
                 self.ipv6_enabled and data.public_ipv6 != self._last_ipv6
             )
 
-            for subdomain in ["", *self.subdomains]:
+            for subdomain in self._record_targets:
                 for record_type, ip in updates:
                     await self._update_record(subdomain, record_type, ip, skip_fetch=not ip_changed)
 

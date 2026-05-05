@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.porkbun_ddns.api import DomainInfo, PorkbunApiError
-from custom_components.porkbun_ddns.const import CONF_SUBDOMAINS
+from custom_components.porkbun_ddns.const import CONF_MANAGE_ROOT, CONF_SUBDOMAINS
 
 from .conftest import MOCK_DOMAIN, enable_entity, get_entity_id, make_entry, setup_entry
 
@@ -82,3 +82,17 @@ async def test_whois_privacy_sensor_value(hass: HomeAssistant, mock_porkbun_clie
     state = hass.states.get(entity_id)
     assert state is not None
     assert state.state == "on"
+
+
+async def test_health_sensor_omits_apex_when_root_unmanaged(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    """managed_subdomains attribute drops '@' when manage_root is False."""
+    entry = make_entry(hass, **{CONF_MANAGE_ROOT: False, CONF_SUBDOMAINS: ["www"]})
+    await setup_entry(hass, entry)
+
+    state = hass.states.get(get_entity_id(hass, "binary_sensor", f"{MOCK_DOMAIN}_health"))
+    assert state is not None
+    assert state.attributes["managed_subdomains"] == ["www"]
+    assert state.attributes["summary"].startswith("1/1")

@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.porkbun_ddns.api import DomainInfo
-from custom_components.porkbun_ddns.const import CONF_FAILURE_THRESHOLD, CONF_SUBDOMAINS
+from custom_components.porkbun_ddns.const import CONF_FAILURE_THRESHOLD, CONF_MANAGE_ROOT, CONF_SUBDOMAINS
 
 from .conftest import MOCK_DOMAIN, MOCK_IPV4, enable_entity, get_entity_id, make_entry, reload_entry, setup_entry
 
@@ -54,6 +54,20 @@ async def test_managed_subdomains_sensor_updates_after_reload(
         f"www.{MOCK_DOMAIN}",
         f"vpn.{MOCK_DOMAIN}",
     ]
+
+
+async def test_managed_subdomains_sensor_omits_apex_when_root_unmanaged(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    """The managed_subdomains sensor drops '@' and the apex from managed_records."""
+    entry = make_entry(hass, **{CONF_MANAGE_ROOT: False, CONF_SUBDOMAINS: ["www"]})
+    await setup_entry(hass, entry)
+
+    state = hass.states.get(get_entity_id(hass, "sensor", f"{MOCK_DOMAIN}_managed_subdomains"))
+    assert state is not None
+    assert state.state == "www"
+    assert state.attributes["managed_records"] == [f"www.{MOCK_DOMAIN}"]
 
 
 @pytest.mark.parametrize("suffix", ["A_ip", "domain_expiry"])

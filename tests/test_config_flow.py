@@ -19,6 +19,7 @@ from custom_components.porkbun_ddns.const import (
     CONF_FAILURE_THRESHOLD,
     CONF_IPV4,
     CONF_IPV6,
+    CONF_MANAGE_ROOT,
     CONF_SECRET_KEY,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
@@ -297,6 +298,7 @@ async def test_options_flow_updates_and_reloads(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"] == {
         CONF_SUBDOMAINS: ["www", "api"],
+        CONF_MANAGE_ROOT: True,
         CONF_IPV4: True,
         CONF_IPV6: True,
         CONF_UPDATE_INTERVAL: 600,
@@ -308,6 +310,127 @@ async def test_options_flow_updates_and_reloads(
     assert entry.runtime_data is not previous_coordinator
     assert entry.runtime_data.update_interval is not None
     assert entry.runtime_data.update_interval.total_seconds() == 600
+
+
+async def test_full_flow_with_manage_root_disabled(hass: HomeAssistant) -> None:
+    """The domain step accepts manage_root=False as long as a subdomain is configured."""
+    with patch("custom_components.porkbun_ddns.config_flow.PorkbunClient", autospec=True) as mock_cls:
+        client = mock_cls.return_value
+        client.ping = AsyncMock(return_value=MOCK_IPV4)
+        client.get_records = AsyncMock(return_value=[])
+
+        flow_id = await _start_user_flow(hass)
+        await _submit_user_step(hass, flow_id)
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            {
+                CONF_DOMAIN: MOCK_DOMAIN,
+                CONF_SUBDOMAINS: "www",
+                CONF_MANAGE_ROOT: False,
+                CONF_IPV4: True,
+                CONF_IPV6: False,
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"][CONF_MANAGE_ROOT] is False
+    assert result["options"][CONF_SUBDOMAINS] == ["www"]
+
+
+async def test_domain_step_rejects_no_records_combination(hass: HomeAssistant) -> None:
+    """manage_root=False with no subdomains is rejected with at_least_one_record."""
+    with patch("custom_components.porkbun_ddns.config_flow.PorkbunClient", autospec=True) as mock_cls:
+        client = mock_cls.return_value
+        client.ping = AsyncMock(return_value=MOCK_IPV4)
+        client.get_records = AsyncMock(side_effect=RuntimeError("should not be called"))
+
+        flow_id = await _start_user_flow(hass)
+        await _submit_user_step(hass, flow_id)
+        result = await hass.config_entries.flow.async_configure(
+            flow_id,
+            {
+                CONF_DOMAIN: MOCK_DOMAIN,
+                CONF_SUBDOMAINS: "",
+                CONF_MANAGE_ROOT: False,
+                CONF_IPV4: True,
+                CONF_IPV6: False,
+            },
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "domain"
+    assert result["errors"] == {"base": "at_least_one_record"}
+    assert client.get_records.await_count == 0
+    schema = result["data_schema"]
+    assert schema is not None
+    schema_defaults = {
+        str(getattr(key, "schema", key)): key.default() if callable(getattr(key, "default", None)) else None
+        for key in schema.schema
+    }
+    assert schema_defaults[CONF_MANAGE_ROOT] is False
+    assert schema_defaults[CONF_DOMAIN] == MOCK_DOMAIN
+
+
+async def test_options_flow_accepts_manage_root_disabled_with_subdomains(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    entry = make_entry(hass, subdomains=["www"])
+    await setup_entry(hass, entry)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            CONF_SUBDOMAINS: "www",
+            CONF_MANAGE_ROOT: False,
+            CONF_IPV4: True,
+            CONF_IPV6: False,
+            CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+            CONF_STARTUP_DELAY: DEFAULT_STARTUP_DELAY,
+            CONF_FAILURE_THRESHOLD: DEFAULT_FAILURE_THRESHOLD,
+        },
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_MANAGE_ROOT] is False
+    assert result["data"][CONF_SUBDOMAINS] == ["www"]
+
+
+async def test_options_flow_rejects_no_records_combination(
+    hass: HomeAssistant,
+    mock_porkbun_client: AsyncMock,
+) -> None:
+    entry = make_entry(hass, subdomains=["www"])
+    await setup_entry(hass, entry)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            CONF_SUBDOMAINS: "",
+            CONF_MANAGE_ROOT: False,
+            CONF_IPV4: True,
+            CONF_IPV6: False,
+            CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
+            CONF_STARTUP_DELAY: DEFAULT_STARTUP_DELAY,
+            CONF_FAILURE_THRESHOLD: DEFAULT_FAILURE_THRESHOLD,
+        },
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
+    assert result["errors"] == {"base": "at_least_one_record"}
+    # The just-rejected user input must come back as the form defaults rather than
+    # the entry's saved options, otherwise the user has to re-enter their changes.
+    schema = result["data_schema"]
+    assert schema is not None
+    schema_defaults = {
+        str(getattr(key, "schema", key)): key.default() if callable(getattr(key, "default", None)) else None
+        for key in schema.schema
+    }
+    assert schema_defaults[CONF_MANAGE_ROOT] is False
+    assert schema_defaults[CONF_SUBDOMAINS] == ""
 
 
 @pytest.mark.parametrize(

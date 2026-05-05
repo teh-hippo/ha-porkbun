@@ -47,9 +47,10 @@ class DdnsHealthSensor(_DdnsBinarySensorBase):
         coord = self.coordinator
         total = coord.record_count
         ok = coord.ok_count
+        managed_subdomains: list[str] = ["@", *coord.subdomains] if coord.manage_root else list(coord.subdomains)
         attrs: dict[str, str | list[str]] = {
             "summary": f"{ok}/{total} OK",
-            "managed_subdomains": ["@"] + coord.subdomains,
+            "managed_subdomains": managed_subdomains,
         }
 
         if coord.data.records:

@@ -17,11 +17,14 @@ CONF_API_KEY = "api_key"
 CONF_SECRET_KEY = "secret_key"
 CONF_DOMAIN = "domain"
 CONF_SUBDOMAINS = "subdomains"
+CONF_MANAGE_ROOT = "manage_root"
 CONF_IPV4 = "ipv4"
 CONF_IPV6 = "ipv6"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_STARTUP_DELAY = "startup_delay"
 CONF_FAILURE_THRESHOLD = "failure_threshold"
+
+DEFAULT_MANAGE_ROOT = True
 
 PORKBUN_API_BASE = "https://api-ipv4.porkbun.com/api/json/v3"
 IPV6_DETECT_URL = "https://api6.ipify.org"

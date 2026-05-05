@@ -26,12 +26,14 @@ from .const import (
     CONF_FAILURE_THRESHOLD,
     CONF_IPV4,
     CONF_IPV6,
+    CONF_MANAGE_ROOT,
     CONF_SECRET_KEY,
     CONF_STARTUP_DELAY,
     CONF_SUBDOMAINS,
     CONF_UPDATE_INTERVAL,
     DATA_FORCE_IMMEDIATE_REFRESH,
     DEFAULT_FAILURE_THRESHOLD,
+    DEFAULT_MANAGE_ROOT,
     DEFAULT_STARTUP_DELAY,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
@@ -72,11 +74,13 @@ def _domain_schema(
     subdomains_default: str = "",
     ipv4_default: bool = True,
     ipv6_default: bool = False,
+    manage_root_default: bool = DEFAULT_MANAGE_ROOT,
 ) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_DOMAIN, default=domain_default): str,
             vol.Optional(CONF_SUBDOMAINS, default=subdomains_default): str,
+            vol.Optional(CONF_MANAGE_ROOT, default=manage_root_default): bool,
             vol.Optional(CONF_IPV4, default=ipv4_default): bool,
             vol.Optional(CONF_IPV6, default=ipv6_default): bool,
         }
@@ -100,6 +104,7 @@ def _reconfigure_schema(
 def _options_from_input(user_input: dict[str, Any], *, include_interval: bool = False) -> dict[str, Any]:
     options: dict[str, Any] = {
         CONF_SUBDOMAINS: _parse_subdomains(user_input.get(CONF_SUBDOMAINS, "")),
+        CONF_MANAGE_ROOT: bool(user_input.get(CONF_MANAGE_ROOT, DEFAULT_MANAGE_ROOT)),
         CONF_IPV4: user_input.get(CONF_IPV4, True),
         CONF_IPV6: user_input.get(CONF_IPV6, False),
     }
@@ -177,6 +182,18 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             domain_name = user_input[CONF_DOMAIN].strip().lower()
+            parsed_options = _options_from_input(user_input, include_interval=True)
+
+            if not parsed_options[CONF_MANAGE_ROOT] and not parsed_options[CONF_SUBDOMAINS]:
+                errors["base"] = "at_least_one_record"
+                schema = _domain_schema(
+                    domain_default=user_input.get(CONF_DOMAIN, ""),
+                    subdomains_default=user_input.get(CONF_SUBDOMAINS, ""),
+                    ipv4_default=bool(user_input.get(CONF_IPV4, True)),
+                    ipv6_default=bool(user_input.get(CONF_IPV6, False)),
+                    manage_root_default=parsed_options[CONF_MANAGE_ROOT],
+                )
+                return self.async_show_form(step_id="domain", data_schema=schema, errors=errors)
 
             await self.async_set_unique_id(domain_name)
             self._abort_if_unique_id_configured()
@@ -189,7 +206,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_SECRET_KEY: self._secret_key,
                         CONF_DOMAIN: domain_name,
                     },
-                    options=_options_from_input(user_input, include_interval=True),
+                    options=parsed_options,
                 )
             client = self._make_client(self._api_key, self._secret_key)
             if error := await self._validate_domain(client, domain_name):
@@ -202,7 +219,7 @@ class PorkbunDdnsConfigFlow(ConfigFlow, domain=DOMAIN):
                         CONF_SECRET_KEY: self._secret_key,
                         CONF_DOMAIN: domain_name,
                     },
-                    options=_options_from_input(user_input, include_interval=True),
+                    options=parsed_options,
                 )
 
         return self.async_show_form(step_id="domain", data_schema=schema, errors=errors)
@@ -282,33 +299,56 @@ class PorkbunDdnsOptionsFlow(OptionsFlowWithReload):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
+        errors: dict[str, str] = {}
         if user_input is not None:
-            _mark_immediate_refresh(self.hass, self.config_entry.entry_id)
-            return self.async_create_entry(data=_options_from_input(user_input, include_interval=True))
+            parsed_options = _options_from_input(user_input, include_interval=True)
+            if not parsed_options[CONF_MANAGE_ROOT] and not parsed_options[CONF_SUBDOMAINS]:
+                errors["base"] = "at_least_one_record"
+            else:
+                _mark_immediate_refresh(self.hass, self.config_entry.entry_id)
+                return self.async_create_entry(data=parsed_options)
 
-        current = self.config_entry.options
+        # On validation error, surface the user's rejected input back to them so they can fix it.
+        # On first render, fall back to the entry's saved options.
+        defaults: dict[str, Any]
+        if user_input is not None:
+            defaults = {
+                CONF_UPDATE_INTERVAL: user_input.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
+                CONF_STARTUP_DELAY: user_input.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY),
+                CONF_FAILURE_THRESHOLD: user_input.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD),
+                CONF_SUBDOMAINS: user_input.get(CONF_SUBDOMAINS, ""),
+                CONF_MANAGE_ROOT: bool(user_input.get(CONF_MANAGE_ROOT, DEFAULT_MANAGE_ROOT)),
+                CONF_IPV4: bool(user_input.get(CONF_IPV4, True)),
+                CONF_IPV6: bool(user_input.get(CONF_IPV6, False)),
+            }
+        else:
+            current = self.config_entry.options
+            defaults = {
+                CONF_UPDATE_INTERVAL: current.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
+                CONF_STARTUP_DELAY: current.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY),
+                CONF_FAILURE_THRESHOLD: current.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD),
+                CONF_SUBDOMAINS: ", ".join(current.get(CONF_SUBDOMAINS, [])),
+                CONF_MANAGE_ROOT: bool(current.get(CONF_MANAGE_ROOT, DEFAULT_MANAGE_ROOT)),
+                CONF_IPV4: bool(current.get(CONF_IPV4, True)),
+                CONF_IPV6: bool(current.get(CONF_IPV6, False)),
+            }
+
         return self.async_show_form(
             step_id="init",
+            errors=errors,
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        CONF_UPDATE_INTERVAL,
-                        default=current.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
+                        CONF_UPDATE_INTERVAL, default=defaults[CONF_UPDATE_INTERVAL]
                     ): UPDATE_INTERVAL_SELECTOR,
+                    vol.Optional(CONF_STARTUP_DELAY, default=defaults[CONF_STARTUP_DELAY]): STARTUP_DELAY_SELECTOR,
                     vol.Optional(
-                        CONF_STARTUP_DELAY,
-                        default=current.get(CONF_STARTUP_DELAY, DEFAULT_STARTUP_DELAY),
-                    ): STARTUP_DELAY_SELECTOR,
-                    vol.Optional(
-                        CONF_FAILURE_THRESHOLD,
-                        default=current.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD),
+                        CONF_FAILURE_THRESHOLD, default=defaults[CONF_FAILURE_THRESHOLD]
                     ): FAILURE_THRESHOLD_SELECTOR,
-                    vol.Optional(
-                        CONF_SUBDOMAINS,
-                        default=", ".join(current.get(CONF_SUBDOMAINS, [])),
-                    ): str,
-                    vol.Optional(CONF_IPV4, default=current.get(CONF_IPV4, True)): bool,
-                    vol.Optional(CONF_IPV6, default=current.get(CONF_IPV6, False)): bool,
+                    vol.Optional(CONF_SUBDOMAINS, default=defaults[CONF_SUBDOMAINS]): str,
+                    vol.Optional(CONF_MANAGE_ROOT, default=defaults[CONF_MANAGE_ROOT]): bool,
+                    vol.Optional(CONF_IPV4, default=defaults[CONF_IPV4]): bool,
+                    vol.Optional(CONF_IPV6, default=defaults[CONF_IPV6]): bool,
                 }
             ),
         )

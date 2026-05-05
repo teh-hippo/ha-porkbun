@@ -61,6 +61,11 @@ class _DdnsSensor(CoordinatorEntity[PorkbunDdnsCoordinator], SensorEntity):
         return None if self._attrs_fn is None else self._attrs_fn(self.coordinator)
 
 
+def _managed_subdomain_labels(coordinator: PorkbunDdnsCoordinator) -> list[str]:
+    """Return display labels for managed subdomains, prefixing '@' when the root is managed."""
+    return ["@", *coordinator.subdomains] if coordinator.manage_root else list(coordinator.subdomains)
+
+
 def _managed_records_attrs(coordinator: PorkbunDdnsCoordinator) -> dict[str, list[str]]:
     return {"managed_records": coordinator.managed_records}
 
@@ -96,7 +101,7 @@ async def async_setup_entry(
         _SensorDef(
             unique_id=f"{domain_name}_managed_subdomains",
             translation_key="managed_subdomains",
-            value_fn=lambda c: ", ".join(["@"] + c.subdomains),
+            value_fn=lambda c: ", ".join(_managed_subdomain_labels(c)),
             attrs_fn=_managed_records_attrs,
         ),
         _SensorDef(

@@ -17,16 +17,18 @@
       },
       "domain": {
         "title": "Domain Configuration",
-        "description": "Configure the domain and optional subdomains for DDNS updates. The root domain is always included.",
+        "description": "Configure the domain and optional subdomains for DDNS updates. The root domain is included by default and can be disabled below.",
         "data": {
           "domain": "Domain",
           "subdomains": "Subdomains",
+          "manage_root": "Manage root domain record",
           "ipv4": "Update IPv4 (A record)",
           "ipv6": "Update IPv6 (AAAA record)"
         },
         "data_description": {
           "domain": "The root domain to update (e.g., example.com).",
-          "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
+          "subdomains": "Comma-separated list of subdomains (e.g., www, vpn).",
+          "manage_root": "When enabled, the root domain is updated alongside any configured subdomains.",
           "ipv4": "Create or update A records with your public IPv4 address.",
           "ipv6": "Create or update AAAA records with your public IPv6 address."
         }
@@ -62,6 +64,7 @@
       "cannot_connect": "Unable to reach the Porkbun API. Please check your network connection.",
       "invalid_auth": "Invalid API key or secret key. Please check your credentials.",
       "domain_not_found": "Domain not accessible with these API keys. Ensure API access is enabled for this domain in your Porkbun dashboard.",
+      "at_least_one_record": "Configure at least one subdomain or enable root domain management.",
       "unknown": "An unexpected error occurred."
     },
     "abort": {
@@ -77,6 +80,7 @@
           "update_interval": "Update interval (seconds)",
           "startup_delay": "Startup delay (seconds)",
           "subdomains": "Subdomains",
+          "manage_root": "Manage root domain record",
           "ipv4": "Update IPv4 (A record)",
           "ipv6": "Update IPv6 (AAAA record)",
           "failure_threshold": "Failure tolerance"
@@ -84,12 +88,16 @@
         "data_description": {
           "update_interval": "How often to check and update DNS records, in seconds. Minimum 60.",
           "startup_delay": "How long to wait after Home Assistant starts or the config entry reloads before the first update, in seconds. Set to 0 to disable.",
-          "subdomains": "Comma-separated list of subdomains (e.g., www, vpn). The root domain is always included.",
+          "subdomains": "Comma-separated list of subdomains (e.g., www, vpn).",
+          "manage_root": "When enabled, the root domain is updated alongside any configured subdomains.",
           "ipv4": "Create or update A records with your public IPv4 address.",
           "ipv6": "Create or update AAAA records with your public IPv6 address.",
           "failure_threshold": "Number of consecutive failed update cycles before raising an error. Transient failures below this count are silently tolerated. Default 3."
         }
       }
+    },
+    "error": {
+      "at_least_one_record": "Configure at least one subdomain or enable root domain management."
     }
   },
   "issues": {
