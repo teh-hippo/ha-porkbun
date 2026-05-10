@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.9.1 (2026-05-10)
+
+### Build System
+
+- **deps**: Upgrade
+  ([`18b3c72`](https://github.com/teh-hippo/ha-porkbun/commit/18b3c72e6077b1a4d8957606f6bc2f14d94ab73c))
+
+
 ## v1.9.0 (2026-05-05)
 
 ### Features
