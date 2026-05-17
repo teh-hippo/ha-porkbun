@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v1.9.7 (2026-05-17)
+
+### Build System
+
+- **deps**: Pin dependencies
+  ([`b3a5196`](https://github.com/teh-hippo/ha-porkbun/commit/b3a5196b5e0e7f9d64637a2788e2e5f6b7f8a38c))
+
+- **deps**: Upgrade
+  ([`8a88468`](https://github.com/teh-hippo/ha-porkbun/commit/8a884680d78051466d11670c18ef866a4ac5fb7c))
+
+### Continuous Integration
+
+- Stagger cron + pin third-party action refs
+  ([`75f876f`](https://github.com/teh-hippo/ha-porkbun/commit/75f876fc236bee00e19170904a770df54d5b30f6))
+
+
 ## v1.9.6 (2026-05-10)
 
 ### Build System
