@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v1.9.8 (2026-05-24)
+
+### Build System
+
+- **deps**: Update all non-major
+  ([`85ab989`](https://github.com/teh-hippo/ha-porkbun/commit/85ab989ed69fc17cc71e59bf67e4ae41fa986d90))
+
+- **deps**: Upgrade
+  ([`8de0ba2`](https://github.com/teh-hippo/ha-porkbun/commit/8de0ba2b5ce9de08359a994f4ade970b4837bbfc))
+
+
 ## v1.9.7 (2026-05-17)
 
 ### Build System
