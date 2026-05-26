@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.9.9 (2026-05-26)
+
+### Build System
+
+- **deps**: Adopt shared Renovate preset
+  ([`ca607e3`](https://github.com/teh-hippo/ha-porkbun/commit/ca607e3fa65aeba3cff9962ac3c1691e5a9c1902))
+
+
 ## v1.9.8 (2026-05-24)
 
 ### Build System
