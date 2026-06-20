@@ -94,9 +94,14 @@ class PorkbunClient:
             try:
                 LOGGER.debug("Porkbun API request: POST %s (attempt %d/%d)", url, attempt, API_REQUEST_MAX_ATTEMPTS)
                 async with self._session.post(url, json=payload, timeout=timeout) as resp:
+                    parse_error: Exception | None = None
                     try:
-                        data: dict[str, Any] = await resp.json(content_type=None)
+                        parsed = await resp.json(content_type=None)
                     except ValueError as err:
+                        parsed = None
+                        parse_error = err
+
+                    if not isinstance(parsed, dict):
                         body = (await resp.text()).strip().replace("\n", " ")
                         snippet = body[:200] if body else "<empty body>"
                         msg = f"Invalid API response (HTTP {resp.status}): {snippet}"
@@ -109,8 +114,9 @@ class PorkbunClient:
                             )
                             await self._sleep_before_retry(attempt)
                             continue
-                        raise PorkbunApiError(msg) from err
+                        raise PorkbunApiError(msg) from parse_error
 
+                    data: dict[str, Any] = parsed
                     LOGGER.debug("Porkbun API response: %s %s", resp.status, data.get("status"))
                     status = data.get("status")
                     if resp.status == 403 or status != "SUCCESS":
