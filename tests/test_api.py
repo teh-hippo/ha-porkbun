@@ -32,6 +32,20 @@ def _mock_response(payload: dict, status: int = 200) -> MagicMock:
     return response
 
 
+def _mock_raw_response(
+    json_value: object = None,
+    status: int = 200,
+    *,
+    json_error: Exception | None = None,
+    text: str = "",
+) -> MagicMock:
+    response = MagicMock()
+    response.status = status
+    response.json = AsyncMock(side_effect=json_error) if json_error else AsyncMock(return_value=json_value)
+    response.text = AsyncMock(return_value=text)
+    return response
+
+
 def _make_session(response: MagicMock) -> MagicMock:
     session = MagicMock(spec=aiohttp.ClientSession)
     ctx = MagicMock()
@@ -233,3 +247,48 @@ async def test_request_timeout_raises_after_retries() -> None:
 
     assert session.post.call_count == 3
     assert sleep_mock.await_count == 2
+
+
+@pytest.mark.parametrize(
+    ("json_value", "text"),
+    [
+        (None, "null"),
+        (None, ""),
+        ([{"status": "SUCCESS"}], '[{"status": "SUCCESS"}]'),
+        ("SUCCESS", '"SUCCESS"'),
+    ],
+)
+async def test_request_raises_on_non_dict_body(json_value: object, text: str) -> None:
+    session = _make_session(_mock_raw_response(json_value, text=text))
+    with pytest.raises(PorkbunApiError, match="Invalid API response"):
+        await _client(session).ping()
+    assert session.post.call_count == 1
+
+
+async def test_request_raises_on_invalid_json_body() -> None:
+    session = _make_session(_mock_raw_response(json_error=ValueError("no json"), text="<html>502</html>"))
+    with pytest.raises(PorkbunApiError, match="Invalid API response"):
+        await _client(session).ping()
+    assert session.post.call_count == 1
+
+
+async def test_request_retries_on_null_body_5xx_then_succeeds() -> None:
+    null_ctx = MagicMock()
+    null_ctx.__aenter__ = AsyncMock(return_value=_mock_raw_response(None, status=503, text=""))
+    null_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    success_ctx = MagicMock()
+    success_ctx.__aenter__ = AsyncMock(return_value=_mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"}))
+    success_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    session = MagicMock(spec=aiohttp.ClientSession)
+    session.post.side_effect = [null_ctx, success_ctx]
+
+    with (
+        patch("custom_components.porkbun_ddns.api.asyncio.sleep", new=AsyncMock()) as sleep_mock,
+        patch("custom_components.porkbun_ddns.api.secrets.randbelow", return_value=0),
+    ):
+        assert await _client(session).ping() == "1.2.3.4"
+
+    assert session.post.call_count == 2
+    assert sleep_mock.await_count == 1
