@@ -1,6 +1,45 @@
 # CHANGELOG
 
 
+## v1.9.10 (2026-06-20)
+
+### Bug Fixes
+
+- Handle non-dict Porkbun API responses without crashing
+  ([`0d96f36`](https://github.com/teh-hippo/ha-porkbun/commit/0d96f366c0f933de1c79791346a911efe0856f86))
+
+### Chores
+
+- **deps**: Lock file maintenance
+  ([`fa034bb`](https://github.com/teh-hippo/ha-porkbun/commit/fa034bbea79d1d227fc91af7af4da721586f7683))
+
+- **deps**: Lock file maintenance
+  ([`d245dcd`](https://github.com/teh-hippo/ha-porkbun/commit/d245dcd7d5d14626713d860ee60d0a982620c0f7))
+
+- **deps**: Lock file maintenance
+  ([`d09c1f4`](https://github.com/teh-hippo/ha-porkbun/commit/d09c1f40ddb726fb1075a1f62965a873b2d617b2))
+
+- **deps**: Update actions/checkout digest to df4cb1c
+  ([`c4d5a19`](https://github.com/teh-hippo/ha-porkbun/commit/c4d5a1921c55e2c714638a2eed4c0cbbb08f8945))
+
+- **deps**: Update astral-sh/setup-uv action to v8.2.0
+  ([`a5e8a55`](https://github.com/teh-hippo/ha-porkbun/commit/a5e8a55e4048d7934de58a5a7c711c88478bbc04))
+
+### Continuous Integration
+
+- Adopt shared CodeQL workflow
+  ([`7900500`](https://github.com/teh-hippo/ha-porkbun/commit/7900500053546a79e0a1b44ab7b048f96b90fd3c))
+
+- Adopt uv sync --locked pattern
+  ([`60cae3e`](https://github.com/teh-hippo/ha-porkbun/commit/60cae3e254344286ceec5a8f74103a0cf798f3c7))
+
+- **release**: Commit uv.lock from build_command via assets
+  ([`f22bb98`](https://github.com/teh-hippo/ha-porkbun/commit/f22bb9896c06d813718141ebf63b35f5345e8dff))
+
+- **validate**: Drop daily cron and Dependabot/Copilot branch push triggers
+  ([`93138b8`](https://github.com/teh-hippo/ha-porkbun/commit/93138b8a588111ae9fedddfe2d66370f8a0f1311))
+
+
 ## v1.9.9 (2026-05-26)
 
 ### Build System
