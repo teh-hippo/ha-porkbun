@@ -1,6 +1,31 @@
 # CHANGELOG
 
 
+## v1.9.11 (2026-07-06)
+
+### Bug Fixes
+
+- **deps**: Refresh uv lock to clear transitive advisories
+  ([`efeb603`](https://github.com/teh-hippo/ha-porkbun/commit/efeb603ba9a8175f951039658ed796f00beec7bd))
+
+### Chores
+
+- **deps**: Lock file maintenance
+  ([`75a2a3f`](https://github.com/teh-hippo/ha-porkbun/commit/75a2a3f2a4ae3f3e4260f7e6d2099106392b702b))
+
+- **deps**: Update actions/checkout action to v7
+  ([`52a9689`](https://github.com/teh-hippo/ha-porkbun/commit/52a96891928b94136c62313923fc5864f7cfc467))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 66af9ee
+  ([`2a3c3b8`](https://github.com/teh-hippo/ha-porkbun/commit/2a3c3b897b1bf1b6e47b06ae0818560468300f3c))
+
+- **deps**: Update softprops/action-gh-release digest to 718ea10
+  ([`9899e39`](https://github.com/teh-hippo/ha-porkbun/commit/9899e390ec27dd8ee21dc662f412476ce196a28b))
+
+- **deps**: Update teh-hippo/common-repo-configs digest to b3d0a78
+  ([`15cde5c`](https://github.com/teh-hippo/ha-porkbun/commit/15cde5ce080926013528ccf56020d6c7cfe6372a))
+
+
 ## v1.9.10 (2026-06-20)
 
 ### Bug Fixes
