@@ -1,6 +1,25 @@
 # CHANGELOG
 
 
+## v1.9.12 (2026-07-06)
+
+### Build System
+
+- **deps**: Pin hub reusable workflows to v2
+  ([`d3eb625`](https://github.com/teh-hippo/ha-porkbun/commit/d3eb625fd847c8ea61ee94a5212030a53e0d2dac))
+
+### Chores
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 1c3a630
+  ([`761e931`](https://github.com/teh-hippo/ha-porkbun/commit/761e93131f38769b499c6bddbafe65ec51a55e46))
+
+- **deps**: Update python-semantic-release/python-semantic-release digest to 37a30a7
+  ([`152cdf2`](https://github.com/teh-hippo/ha-porkbun/commit/152cdf248181341ef4ae83f4b84e0cce52d577af))
+
+- **renovate**: Extend base preset directly (retire weekly slot)
+  ([`d0c588e`](https://github.com/teh-hippo/ha-porkbun/commit/d0c588e9d905d89d99bb35fa9e5184da4a7dad07))
+
+
 ## v1.9.11 (2026-07-06)
 
 ### Bug Fixes
