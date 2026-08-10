@@ -85,6 +85,23 @@ bash scripts/check.sh
 
 Requires [uv](https://docs.astral.sh/uv/). Uses [Conventional Commits](https://www.conventionalcommits.org/).
 
+### Porkbun API contract and sandbox tests
+
+The normal test suite is fully mocked and does not contact Porkbun. Optional
+external tests cover Porkbun's credential-free mock API and isolated sandbox.
+
+1. Copy `.pbsb.example` to `.pbsb`.
+2. Add sandbox keys beginning with `pk1_sb_` and `sk1_sb_`.
+3. Run `bash scripts/check-sandbox.sh`.
+
+The runner rejects production keys. It provisions or reuses a fake sandbox
+domain, creates a uniquely named DNS record, exercises the read and write
+lifecycle, and deletes the record even when a test fails. The shared sandbox
+account is never reset.
+
+Set `PORKBUN_SANDBOX_ENV_FILE` to use another credentials file. The existing
+`~/.pbsb` format with `API_KEY` and `SECRET_KEY` is also supported.
+
 ## License
 
 [MIT](LICENSE)

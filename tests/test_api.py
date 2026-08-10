@@ -25,9 +25,15 @@ BASE_RECORD = {
 }
 
 
-def _mock_response(payload: dict, status: int = 200) -> MagicMock:
+def _mock_response(
+    payload: dict,
+    status: int = 200,
+    *,
+    headers: dict[str, str] | None = None,
+) -> MagicMock:
     response = MagicMock()
     response.status = status
+    response.headers = headers or {}
     response.json = AsyncMock(return_value=payload)
     return response
 
@@ -38,9 +44,11 @@ def _mock_raw_response(
     *,
     json_error: Exception | None = None,
     text: str = "",
+    headers: dict[str, str] | None = None,
 ) -> MagicMock:
     response = MagicMock()
     response.status = status
+    response.headers = headers or {}
     response.json = AsyncMock(side_effect=json_error) if json_error else AsyncMock(return_value=json_value)
     response.text = AsyncMock(return_value=text)
     return response
@@ -64,10 +72,22 @@ async def test_ping_success() -> None:
     assert await _client(session).ping() == "1.2.3.4"
 
 
-async def test_ping_auth_error() -> None:
-    session = _make_session(_mock_response({"status": "ERROR", "message": "Invalid API key"}))
-    with pytest.raises(PorkbunAuthError, match="Invalid API key"):
+@pytest.mark.parametrize("code", ["INVALID_API_KEYS_001", "INVALID_API_KEYS_002"])
+async def test_ping_auth_error(code: str) -> None:
+    session = _make_session(
+        _mock_response(
+            {
+                "status": "ERROR",
+                "code": code,
+                "message": "Invalid API key",
+                "requestId": "request-auth",
+            }
+        )
+    )
+    with pytest.raises(PorkbunAuthError, match="Invalid API key") as exc_info:
         await _client(session).ping()
+    assert exc_info.value.code == code
+    assert exc_info.value.request_id == "request-auth"
 
 
 async def test_ping_network_error() -> None:
@@ -133,6 +153,53 @@ async def test_api_error() -> None:
         await _client(session).create_record("example.com", "A", "1.2.3.4")
 
 
+async def test_invalid_domain_is_not_auth_error() -> None:
+    session = _make_session(
+        _mock_response(
+            {
+                "status": "ERROR",
+                "code": "INVALID_DOMAIN",
+                "message": "Invalid domain",
+                "next_action": {
+                    "type": "correct_input",
+                    "hint": "Use a domain in the account",
+                    "retryable": False,
+                },
+            },
+            status=400,
+            headers={"X-Request-Id": "request-domain"},
+        )
+    )
+
+    with pytest.raises(PorkbunApiError, match="Invalid domain") as exc_info:
+        await _client(session).get_records("not-a-domain", "A")
+
+    assert not isinstance(exc_info.value, PorkbunAuthError)
+    assert exc_info.value.code == "INVALID_DOMAIN"
+    assert exc_info.value.http_status == 400
+    assert exc_info.value.request_id == "request-domain"
+    assert exc_info.value.next_action == {
+        "type": "correct_input",
+        "hint": "Use a domain in the account",
+        "retryable": False,
+    }
+    assert exc_info.value.retryable is False
+
+
+async def test_get_records_returns_empty_for_stable_error_code() -> None:
+    session = _make_session(
+        _mock_response(
+            {
+                "status": "ERROR",
+                "code": "NO_RECORDS_FOUND",
+                "message": "Nothing matched",
+            }
+        )
+    )
+
+    assert await _client(session).get_records("example.com", "A", "missing") == []
+
+
 @pytest.mark.parametrize(
     ("domains", "expected_found"),
     [
@@ -142,8 +209,8 @@ async def test_api_error() -> None:
                     "domain": "example.com",
                     "status": "ACTIVE",
                     "expireDate": "2026-02-18 23:59:59",
-                    "whoisPrivacy": "1",
-                    "autoRenew": "1",
+                    "whoisPrivacy": 1,
+                    "autoRenew": True,
                 }
             ],
             True,
@@ -231,6 +298,35 @@ async def test_request_retries_on_http_503_then_succeeds() -> None:
     assert sleep_mock.await_count == 1
 
 
+async def test_request_uses_retry_after_and_next_action() -> None:
+    error_response = _mock_response(
+        {
+            "status": "ERROR",
+            "code": "RATE_LIMIT_EXCEEDED",
+            "message": "Slow down",
+            "next_action": {"type": "wait", "retryable": True},
+        },
+        status=429,
+        headers={"Retry-After": "7"},
+    )
+    error_ctx = MagicMock()
+    error_ctx.__aenter__ = AsyncMock(return_value=error_response)
+    error_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    success_response = _mock_response({"status": "SUCCESS", "yourIp": "1.2.3.4"})
+    success_ctx = MagicMock()
+    success_ctx.__aenter__ = AsyncMock(return_value=success_response)
+    success_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    session = MagicMock(spec=aiohttp.ClientSession)
+    session.post.side_effect = [error_ctx, success_ctx]
+
+    with patch("custom_components.porkbun_ddns.api.asyncio.sleep", new=AsyncMock()) as sleep_mock:
+        assert await _client(session).ping() == "1.2.3.4"
+
+    sleep_mock.assert_awaited_once_with(7.0)
+
+
 async def test_request_timeout_raises_after_retries() -> None:
     session = MagicMock(spec=aiohttp.ClientSession)
     ctx = MagicMock()
@@ -247,6 +343,47 @@ async def test_request_timeout_raises_after_retries() -> None:
 
     assert session.post.call_count == 3
     assert sleep_mock.await_count == 2
+
+
+async def test_create_reuses_idempotency_key_across_retries() -> None:
+    response = _mock_response({"status": "SUCCESS", "id": "789"})
+    success_ctx = MagicMock()
+    success_ctx.__aenter__ = AsyncMock(return_value=response)
+    success_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    session = MagicMock(spec=aiohttp.ClientSession)
+    session.post.side_effect = [aiohttp.ClientConnectionError("Connection reset"), success_ctx]
+
+    with (
+        patch("custom_components.porkbun_ddns.api.asyncio.sleep", new=AsyncMock()),
+        patch("custom_components.porkbun_ddns.api.secrets.randbelow", return_value=0),
+        patch("custom_components.porkbun_ddns.api.secrets.token_hex", return_value="stable-key"),
+    ):
+        assert await _client(session).create_record("example.com", "A", "1.2.3.4") == "789"
+
+    assert [call.kwargs["headers"] for call in session.post.call_args_list] == [
+        {"Idempotency-Key": "stable-key"},
+        {"Idempotency-Key": "stable-key"},
+    ]
+
+
+async def test_writes_use_unique_idempotency_keys() -> None:
+    session = _make_session(_mock_response({"status": "SUCCESS", "id": "789"}))
+
+    with patch(
+        "custom_components.porkbun_ddns.api.secrets.token_hex",
+        side_effect=["create-key", "edit-key", "delete-key"],
+    ):
+        client = _client(session)
+        await client.create_record("example.com", "A", "1.2.3.4", "ci")
+        await client.edit_record_by_name_type("example.com", "A", "5.6.7.8", "ci")
+        await client.delete_records_by_name_type("example.com", "A", "ci")
+
+    calls = session.post.call_args_list
+    assert calls[0].kwargs["headers"] == {"Idempotency-Key": "create-key"}
+    assert calls[1].kwargs["headers"] == {"Idempotency-Key": "edit-key"}
+    assert calls[2].kwargs["headers"] == {"Idempotency-Key": "delete-key"}
+    assert calls[2].args[0].endswith("dns/deleteByNameType/example.com/A/ci")
 
 
 @pytest.mark.parametrize(
