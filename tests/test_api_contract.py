@@ -69,10 +69,14 @@ async def test_mock_error_contract_matches_structured_parser(external_network: N
             async with session.get(f"{MOCK_API_BASE}/ping?status=error") as response:
                 body = await response.text()
                 if body:
-                    payload = json.loads(body)
-                    assert isinstance(payload, dict)
-                    error = PorkbunClient._error_from_response(payload, response)
-                    break
+                    try:
+                        payload = json.loads(body)
+                    except json.JSONDecodeError:
+                        pass
+                    else:
+                        assert isinstance(payload, dict)
+                        error = PorkbunClient._error_from_response(payload, response)
+                        break
             if attempt < 2:
                 await asyncio.sleep(attempt + 1)
 
