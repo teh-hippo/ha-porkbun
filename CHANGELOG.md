@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v1.10.1 (2026-08-10)
+
+### Bug Fixes
+
+- Tolerate invalid Porkbun mock responses
+  ([`d22752f`](https://github.com/teh-hippo/ha-porkbun/commit/d22752f710859ce49e021c7d32716395039f8623))
+
+
 ## v1.10.0 (2026-08-10)
 
 ### Chores
