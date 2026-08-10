@@ -1,6 +1,75 @@
 # CHANGELOG
 
 
+## v1.10.0 (2026-08-10)
+
+### Chores
+
+- **deps**: Lock file maintenance
+  ([`03ff8e1`](https://github.com/teh-hippo/ha-porkbun/commit/03ff8e1eee088bae69595ccc979d6463e241dd06))
+
+- **deps**: Lock file maintenance
+  ([`cea76f3`](https://github.com/teh-hippo/ha-porkbun/commit/cea76f35ada50d08d5014b4f518d449f05234039))
+
+- **deps**: Lock file maintenance
+  ([`d3eee66`](https://github.com/teh-hippo/ha-porkbun/commit/d3eee6630498ca96ce3cb0d819f03a1ef044ad07))
+
+- **deps**: Lock file maintenance
+  ([`f40bd68`](https://github.com/teh-hippo/ha-porkbun/commit/f40bd68e6154c81dfe60fab7fe3f3b92f981fb2b))
+
+- **deps**: Lock file maintenance
+  ([`37c8bc3`](https://github.com/teh-hippo/ha-porkbun/commit/37c8bc325ee5375a618c932381386224fb186ffb))
+
+- **deps**: Lock file maintenance
+  ([`29460db`](https://github.com/teh-hippo/ha-porkbun/commit/29460dbaf2bf0718ea704cf28975905dc164827a))
+
+- **deps**: Lock file maintenance
+  ([`969ff38`](https://github.com/teh-hippo/ha-porkbun/commit/969ff3807f0b559c8b4c89f4c946f3575f0de91d))
+
+- **deps**: Lock file maintenance
+  ([`0fd6dab`](https://github.com/teh-hippo/ha-porkbun/commit/0fd6dab9dd117b0463096750c43a03eff7110d92))
+
+- **deps**: Lock file maintenance
+  ([`5e76ec9`](https://github.com/teh-hippo/ha-porkbun/commit/5e76ec9d7949503ab9dcac484f92d9bbf3e4e6e3))
+
+- **deps**: Lock file maintenance
+  ([`3a431da`](https://github.com/teh-hippo/ha-porkbun/commit/3a431da0b1c70d80f419f934c1857c6ae345e034))
+
+- **deps**: Update actions/checkout digest to 3d3c42e
+  ([`3d4765c`](https://github.com/teh-hippo/ha-porkbun/commit/3d4765c26a77be2000796b4642ccfd813f7cdd1d))
+
+- **deps**: Update astral-sh/setup-uv action to v8.3.0
+  ([`819e295`](https://github.com/teh-hippo/ha-porkbun/commit/819e295b6db81edb0f6341c9a88ed644fd161c0c))
+
+- **deps**: Update astral-sh/setup-uv action to v8.3.1
+  ([`583d5eb`](https://github.com/teh-hippo/ha-porkbun/commit/583d5eb25ffaf38dbf56280572cf021c9e67bef3))
+
+- **deps**: Update astral-sh/setup-uv action to v8.3.2
+  ([`32248ae`](https://github.com/teh-hippo/ha-porkbun/commit/32248aefba32d544882f7ec0281367f9b9bd501c))
+
+- **deps**: Update astral-sh/setup-uv action to v9
+  ([`8c8ffd9`](https://github.com/teh-hippo/ha-porkbun/commit/8c8ffd9c8c289fb962d337675634aae0e10106e7))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to f04a1e9
+  ([`4872008`](https://github.com/teh-hippo/ha-porkbun/commit/48720086aada7a9aaf9aad88456d08e356e2075c))
+
+- **deps**: Update python-semantic-release/python-semantic-release digest to 39dd205
+  ([`b1c81d1`](https://github.com/teh-hippo/ha-porkbun/commit/b1c81d1eb2b8713e232ae509d1c3369398bee05b))
+
+- **deps**: Update softprops/action-gh-release digest to 3d0d988
+  ([`781edb3`](https://github.com/teh-hippo/ha-porkbun/commit/781edb302edf3c3255d4c59741c0a04414d15a23))
+
+### Continuous Integration
+
+- Remove CodeQL advanced workflow in favour of default setup
+  ([`c8ad58b`](https://github.com/teh-hippo/ha-porkbun/commit/c8ad58b88900096faf3a0d7e81e187f7aed0353e))
+
+### Features
+
+- Add Porkbun sandbox API validation
+  ([`4f4bd38`](https://github.com/teh-hippo/ha-porkbun/commit/4f4bd389126adbd5bb18f37b5ca3a8134234e6a8))
+
+
 ## v1.9.12 (2026-07-06)
 
 ### Build System
