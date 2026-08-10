@@ -1,0 +1,3 @@
+# Porkbun sandbox credentials only. Production keys are rejected by the test runner.
+PORKBUN_SANDBOX_API_KEY=pk1_sb_replace_me
+PORKBUN_SANDBOX_SECRET_KEY=sk1_sb_replace_me

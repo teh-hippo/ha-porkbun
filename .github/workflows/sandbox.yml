@@ -1,0 +1,48 @@
+name: Sandbox API
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * 1"
+
+concurrency:
+  group: porkbun-sandbox
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Mock API Contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.14"
+      - run: uv sync --locked
+      - run: uv run --no-sync pytest tests/test_api_contract.py -v --tb=short
+        env:
+          PORKBUN_RUN_CONTRACT: "1"
+
+  sandbox:
+    name: Live Sandbox
+    needs: contract
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.14"
+      - run: uv sync --locked
+      - run: uv run --no-sync pytest tests/test_api_sandbox.py -v --tb=short
+        env:
+          PORKBUN_RUN_SANDBOX: "1"
+          PORKBUN_SANDBOX_API_KEY: ${{ secrets.PORKBUN_SANDBOX_API_KEY }}
+          PORKBUN_SANDBOX_SECRET_KEY: ${{ secrets.PORKBUN_SANDBOX_SECRET_KEY }}

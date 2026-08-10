@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import socket
 from collections.abc import Generator
 from typing import Any
 from unittest.mock import AsyncMock, patch
@@ -30,10 +31,18 @@ MOCK_DOMAIN = "example.com"
 MOCK_IPV4 = "1.2.3.4"
 MOCK_IPV6 = "2001:db8::1"
 
+_REAL_SOCKET_CONNECT = socket.socket.connect
+
 
 @pytest.fixture(autouse=True)
 def _enable_custom_integrations(enable_custom_integrations):
     pass
+
+
+@pytest.fixture
+def external_network(socket_enabled: None, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Enable external connections despite Home Assistant's localhost-only guard."""
+    monkeypatch.setattr(socket.socket, "connect", _REAL_SOCKET_CONNECT)
 
 
 def make_entry(hass: HomeAssistant, *, domain_name: str = MOCK_DOMAIN, **options: Any) -> MockConfigEntry:
