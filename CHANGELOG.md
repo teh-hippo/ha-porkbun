@@ -1,6 +1,57 @@
 # CHANGELOG
 
 
+## v1.10.2 (2026-08-24)
+
+### Bug Fixes
+
+- **deps**: Override vulnerable cryptography pin
+  ([`8eaf569`](https://github.com/teh-hippo/ha-porkbun/commit/8eaf5694ee8b84609327072fc5e2f55487369ffc))
+
+### Chores
+
+- **deps**: Lock file maintenance
+  ([`bafdf47`](https://github.com/teh-hippo/ha-porkbun/commit/bafdf4782132487fe4264f64a1aaa3cb4855b780))
+
+- **deps**: Lock file maintenance
+  ([`512659a`](https://github.com/teh-hippo/ha-porkbun/commit/512659a17042953be6168e50222a0bff97384455))
+
+- **deps**: Lock file maintenance
+  ([`0856181`](https://github.com/teh-hippo/ha-porkbun/commit/0856181127a5c7a7d11c973e12a629227aa8b0b7))
+
+- **deps**: Lock file maintenance
+  ([`a03f7d3`](https://github.com/teh-hippo/ha-porkbun/commit/a03f7d3ce71f391fa2cd27888b180f3e4b490f06))
+
+- **deps**: Lock file maintenance
+  ([`50aa720`](https://github.com/teh-hippo/ha-porkbun/commit/50aa720916f6d2b9b687ddf06a78271d4a9e85f6))
+
+- **deps**: Lock file maintenance
+  ([`21df1cf`](https://github.com/teh-hippo/ha-porkbun/commit/21df1cf4569f4e360fbee60908ae08c19ed7c7ca))
+
+- **deps**: Lock file maintenance
+  ([`0d12523`](https://github.com/teh-hippo/ha-porkbun/commit/0d125232b202db7ab6d2531d74de9c911dcbbce5))
+
+- **deps**: Lock file maintenance
+  ([`f2f054e`](https://github.com/teh-hippo/ha-porkbun/commit/f2f054eabaa4bb7cd2ae93f28c4e610818e11ffd))
+
+- **deps**: Lock file maintenance
+  ([`6065b63`](https://github.com/teh-hippo/ha-porkbun/commit/6065b635f52acd0c899032dafa4b9bec6637d4d5))
+
+- **deps**: Lock file maintenance
+  ([`fd89a73`](https://github.com/teh-hippo/ha-porkbun/commit/fd89a7362fcd35df317b458c185363af1e450a22))
+
+- **deps**: Update astral-sh/setup-uv action to v10
+  ([`0cc2d22`](https://github.com/teh-hippo/ha-porkbun/commit/0cc2d22599623f9930e0cf5765f6cbf11b0aedf1))
+
+- **deps**: Update astral-sh/setup-uv action to v10.0.1
+  ([`c494ffa`](https://github.com/teh-hippo/ha-porkbun/commit/c494ffab21207bbc126676e55d4d690c6c997982))
+
+### Documentation
+
+- Add security policy
+  ([`721a95f`](https://github.com/teh-hippo/ha-porkbun/commit/721a95f70f2f01ce78aaad36b77baa8556d51a3b))
+
+
 ## v1.10.1 (2026-08-10)
 
 ### Bug Fixes
