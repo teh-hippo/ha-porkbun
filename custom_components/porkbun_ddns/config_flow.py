@@ -6,7 +6,7 @@ from collections.abc import Awaitable
 from typing import Any
 
 import aiohttp
-import voluptuous as vol
+import probatio as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlowWithReload
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
