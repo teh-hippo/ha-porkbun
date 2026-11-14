@@ -1,6 +1,94 @@
 # CHANGELOG
 
 
+## v1.10.3 (2026-11-14)
+
+### Bug Fixes
+
+- Keep Renovate Python updates compatible with Home Assistant
+  ([`ba09476`](https://github.com/teh-hippo/ha-porkbun/commit/ba09476aa70f185dc30991fdd2b6b4df6a200417))
+
+- Preserve Home Assistant compatibility across API migrations
+  ([`b57ead8`](https://github.com/teh-hippo/ha-porkbun/commit/b57ead848cc20ffc03f2377b3290172e475dd7af))
+
+- Select config schemas for the Home Assistant runtime
+  ([`f33a55f`](https://github.com/teh-hippo/ha-porkbun/commit/f33a55f2ae1c4104b2f108110c68af872601c972))
+
+### Chores
+
+- **deps**: Lock file maintenance
+  ([`a3d03d0`](https://github.com/teh-hippo/ha-porkbun/commit/a3d03d0ff9a7e520d54b088f34092a92efeec5fa))
+
+- **deps**: Update astral-sh/setup-uv action to v10.1.0
+  ([`5e884b3`](https://github.com/teh-hippo/ha-porkbun/commit/5e884b3030e5eac8deaa6aef9888e275b235302d))
+
+- **deps**: Update astral-sh/setup-uv action to v10.2.0
+  ([`eb726c9`](https://github.com/teh-hippo/ha-porkbun/commit/eb726c902347df4123bffc1a830c3ac4d25dd564))
+
+- **deps**: Update astral-sh/setup-uv action to v10.3.0
+  ([`a0100bc`](https://github.com/teh-hippo/ha-porkbun/commit/a0100bc7990a7d8c003dd7698332d826bc79cb5f))
+
+- **deps**: Update astral-sh/setup-uv action to v10.3.1
+  ([`2966347`](https://github.com/teh-hippo/ha-porkbun/commit/29663475bdaa30dcc4440aa0e25b0697dacc879e))
+
+- **deps**: Update astral-sh/setup-uv action to v10.3.2
+  ([`5b00502`](https://github.com/teh-hippo/ha-porkbun/commit/5b00502e5735ea52fb4628740797c8844dd94576))
+
+- **deps**: Update astral-sh/setup-uv action to v10.3.3
+  ([`83fc1d5`](https://github.com/teh-hippo/ha-porkbun/commit/83fc1d5544748146ef4aeb8311b733b38c625a54))
+
+- **deps**: Update dependency aiohttp to v3.14.4 [security]
+  ([`f039b82`](https://github.com/teh-hippo/ha-porkbun/commit/f039b82be0f9c057fa36a503d9b969c26a63af4b))
+
+- **deps**: Update dependency certifi to v2026.10.18 [security]
+  ([`fa4216f`](https://github.com/teh-hippo/ha-porkbun/commit/fa4216fbd965d16a59e2123acaf413b1cc0733d7))
+
+- **deps**: Update dependency multidict to v6.9.1 [security]
+  ([`abdb286`](https://github.com/teh-hippo/ha-porkbun/commit/abdb286821eda81672160b57e2b31c5103a8ffdf))
+
+- **deps**: Update dependency pyjwt to v2.15.0 [security]
+  ([`39582a0`](https://github.com/teh-hippo/ha-porkbun/commit/39582a069e45ed33a98cf3bee44c44828f6f5d28))
+
+- **deps**: Update dependency urllib3 to v2.8.0 [security]
+  ([`be2d40e`](https://github.com/teh-hippo/ha-porkbun/commit/be2d40e872cb16772647b36119428627c7bc8807))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 28835c1
+  ([`c5e30a2`](https://github.com/teh-hippo/ha-porkbun/commit/c5e30a21fff8ef17e95e1f6cdc46b8aa17593548))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 2e0589f
+  ([`8c1da68`](https://github.com/teh-hippo/ha-porkbun/commit/8c1da687851f7e474b0220bbada21a92d67c2430))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 3b3c455
+  ([`a5a5827`](https://github.com/teh-hippo/ha-porkbun/commit/a5a582759d182b7385f40e063a066bec95d281d7))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 42ca12e
+  ([`110f3a0`](https://github.com/teh-hippo/ha-porkbun/commit/110f3a0d14117e3011f612430c90cf3e04884a09))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 66a3950
+  ([`055bef4`](https://github.com/teh-hippo/ha-porkbun/commit/055bef445487c60e136b3f884cb68a1aa56f40ab))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 824bd18
+  ([`6eda8c2`](https://github.com/teh-hippo/ha-porkbun/commit/6eda8c2be680764de6e5e33315af5d5e8dd85f95))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 97152d7
+  ([`0a3318c`](https://github.com/teh-hippo/ha-porkbun/commit/0a3318ccb8e18acf0215aebfc05013dfa6c962d9))
+
+- **deps**: Update python to >=3.15.2,<3.16
+  ([`ae2b221`](https://github.com/teh-hippo/ha-porkbun/commit/ae2b221f7cc9468046ffd4b42a85e46854dc3096))
+
+- **deps**: Update python-semantic-release/python-semantic-release digest to 9a026e9
+  ([`741b71a`](https://github.com/teh-hippo/ha-porkbun/commit/741b71ac98c13a5906d74a7af8377704f9f2b8d6))
+
+- **deps**: Update python-semantic-release/python-semantic-release digest to b700dbe
+  ([`5c4b586`](https://github.com/teh-hippo/ha-porkbun/commit/5c4b5863cad2617808cc06a4f811fff7b1e5ee63))
+
+- **deps**: Update softprops/action-gh-release digest to 8a0cd65
+  ([`1af00e5`](https://github.com/teh-hippo/ha-porkbun/commit/1af00e5d830667c7168300a75836172e8f42ff4f))
+
+- **deps**: Update softprops/action-gh-release digest to efb3536
+  ([`1e718e3`](https://github.com/teh-hippo/ha-porkbun/commit/1e718e3317020af7252929890319214fd904648b))
+
+
 ## v1.10.2 (2026-08-24)
 
 ### Bug Fixes
