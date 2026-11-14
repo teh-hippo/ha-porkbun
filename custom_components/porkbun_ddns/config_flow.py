@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlowWithReload
+from homeassistant.const import MAJOR_VERSION, MINOR_VERSION
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
@@ -39,13 +40,10 @@ from .const import (
     LOGGER,
 )
 
-if TYPE_CHECKING:
+if TYPE_CHECKING or (MAJOR_VERSION, MINOR_VERSION) >= (2026, 10):
     import probatio as vol
 else:
-    try:
-        import probatio as vol
-    except ImportError:
-        import voluptuous as vol
+    import voluptuous as vol
 
 CONF_IGNORE_VERIFICATION = "ignore_verification"
 
