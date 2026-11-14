@@ -18,6 +18,9 @@ It keeps A/AAAA DNS records synced with your public IP.
 
 ## Prerequisites
 
+Home Assistant 2026.3 or later on Python 3.14 is required.
+Compatibility imports retain support for releases before Home Assistant 2026.10's schema and binary sensor API changes.
+
 1. Domain managed at Porkbun
 2. Domain API access enabled
 3. Porkbun API key + secret from [porkbun.com/account/api](https://porkbun.com/account/api)

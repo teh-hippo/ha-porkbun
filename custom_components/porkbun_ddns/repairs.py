@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.repairs import ConfirmRepairFlow, RepairsFlow
 from homeassistant.config_entries import SOURCE_RECONFIGURE
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResult
 
 from .const import DOMAIN
+
+if TYPE_CHECKING:
+    from homeassistant.components.repairs import RepairsFlowResult
 
 
 class ApiAccessRepairFlow(ConfirmRepairFlow):
@@ -20,7 +22,7 @@ class ApiAccessRepairFlow(ConfirmRepairFlow):
         super().__init__()
         self._entry_id = entry_id
 
-    async def async_step_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_confirm(self, user_input: dict[str, Any] | None = None) -> RepairsFlowResult:
         """Confirm and start the reconfigure flow for the affected entry."""
         if user_input is not None:
             self.hass.async_create_task(

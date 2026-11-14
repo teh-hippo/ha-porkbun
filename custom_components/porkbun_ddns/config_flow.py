@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
-import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlowWithReload
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -39,6 +38,14 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
+
+if TYPE_CHECKING:
+    import probatio as vol
+else:
+    try:
+        import probatio as vol
+    except ImportError:
+        import voluptuous as vol
 
 CONF_IGNORE_VERIFICATION = "ignore_verification"
 
