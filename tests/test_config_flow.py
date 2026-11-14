@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
+from homeassistant.helpers.data_entry_flow import FlowManagerIndexView
 
 from custom_components.porkbun_ddns.api import PorkbunAuthError
 from custom_components.porkbun_ddns.config_flow import CONF_IGNORE_VERIFICATION, _parse_subdomains
@@ -80,6 +81,8 @@ async def test_user_step_schema_has_ignore_verification(hass: HomeAssistant) -> 
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
     assert CONF_IGNORE_VERIFICATION in _schema_keys(result["data_schema"])
+    response = FlowManagerIndexView(hass.config_entries.flow)._prepare_result_json(result)
+    assert CONF_IGNORE_VERIFICATION in {field["name"] for field in response["data_schema"]}
 
 
 async def test_full_flow(hass: HomeAssistant) -> None:
