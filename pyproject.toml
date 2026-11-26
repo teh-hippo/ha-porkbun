@@ -7,7 +7,10 @@ license = "MIT"
 requires-python = ">=3.14.2,<3.15"
 
 [tool.pytest.ini_options]
+addopts = "-p no:respx"
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
 testpaths = ["tests"]
 markers = [
     "contract: tests against Porkbun's credential-free mock API",
@@ -61,7 +64,7 @@ warn_unreachable = true
 [[tool.mypy.overrides]]
 module = [
     "homeassistant.*",
-    "pytest_homeassistant_custom_component.*",
+    "pytest_homeassistant.*",
 ]
 ignore_missing_imports = true
 
@@ -75,7 +78,8 @@ disable_error_code = ["arg-type", "type-arg"]
 
 [dependency-groups]
 dev = [
+    "coverage>=7.13",
     "mypy>=1.15",
-    "pytest-homeassistant-custom-component>=0.13.316",
+    "pytest-homeassistant==2026.11.3",
     "ruff>=0.9",
 ]

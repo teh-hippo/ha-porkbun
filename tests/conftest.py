@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.porkbun_ddns.const import (
     CONF_API_KEY,
@@ -32,11 +32,6 @@ MOCK_IPV4 = "1.2.3.4"
 MOCK_IPV6 = "2001:db8::1"
 
 _REAL_SOCKET_CONNECT = socket.socket.connect
-
-
-@pytest.fixture(autouse=True)
-def _enable_custom_integrations(enable_custom_integrations):
-    pass
 
 
 @pytest.fixture

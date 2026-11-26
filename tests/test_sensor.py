@@ -10,7 +10,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
-from pytest_homeassistant_custom_component.common import async_fire_time_changed
+from pytest_homeassistant.common import async_fire_time_changed
 
 from custom_components.porkbun_ddns.api import DomainInfo
 from custom_components.porkbun_ddns.const import CONF_FAILURE_THRESHOLD, CONF_MANAGE_ROOT, CONF_SUBDOMAINS

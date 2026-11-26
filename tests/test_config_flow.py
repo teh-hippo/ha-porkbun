@@ -5,8 +5,8 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import aiohttp
+import probatio as vol
 import pytest
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType, InvalidData

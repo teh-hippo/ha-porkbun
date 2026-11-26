@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import aiohttp
+import probatio as vol
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlowWithReload
-from homeassistant.const import MAJOR_VERSION, MINOR_VERSION
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
@@ -39,11 +39,6 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
-
-if TYPE_CHECKING or (MAJOR_VERSION, MINOR_VERSION) >= (2026, 10):
-    import probatio as vol
-else:
-    import voluptuous as vol
 
 CONF_IGNORE_VERIFICATION = "ignore_verification"
 

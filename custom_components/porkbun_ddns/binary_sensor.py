@@ -2,21 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-if TYPE_CHECKING:
-    from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
-else:
-    try:
-        from homeassistant.components.binary_sensor.const import BinarySensorDeviceClass
-    except ImportError:
-        from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from . import PorkbunDdnsConfigEntry
 from .coordinator import PorkbunDdnsCoordinator

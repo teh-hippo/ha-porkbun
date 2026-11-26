@@ -1,6 +1,6 @@
 # 🐷 Porkbun DDNS for Home Assistant
 
-[![HACS][hacs-badge]][hacs-url]
+[![Marketplace][marketplace-badge]][marketplace-url]
 [![GitHub Release][release-badge]][release-url]
 [![Validate][validate-badge]][validate-url]
 [![Home Assistant][ha-badge]][ha-url]
@@ -18,8 +18,7 @@ It keeps A/AAAA DNS records synced with your public IP.
 
 ## Prerequisites
 
-Home Assistant 2026.3 or later on Python 3.14 is required.
-Compatibility imports retain support for releases before Home Assistant 2026.10's schema and binary sensor API changes.
+Home Assistant 2026.11 or later on Python 3.14 is required.
 
 1. Domain managed at Porkbun
 2. Domain API access enabled
@@ -27,12 +26,16 @@ Compatibility imports retain support for releases before Home Assistant 2026.10'
 
 ## Installation
 
-### HACS (recommended)
+### Marketplace (recommended)
 
-1. HACS → **Custom repositories**
-2. Add `https://github.com/teh-hippo/ha-porkbun` as **Integration**
-3. Install **Porkbun DDNS**
-4. Restart Home Assistant
+1. Open **Settings → Marketplace**
+2. Select the three-dot menu → **Custom repositories**
+3. Add `https://github.com/teh-hippo/ha-porkbun` as **Integration**
+4. Install **Porkbun DDNS**
+5. Complete the setup flow
+
+Marketplace update files are installed immediately, but Home Assistant must be
+restarted before updated integration code is loaded.
 
 ### Manual
 
@@ -109,11 +112,11 @@ Set `PORKBUN_SANDBOX_ENV_FILE` to use another credentials file. The existing
 
 [MIT](LICENSE)
 
-[hacs-badge]: https://img.shields.io/badge/HACS-Custom-41BDF5.svg
-[hacs-url]: https://github.com/hacs/integration
+[marketplace-badge]: https://img.shields.io/badge/Home%20Assistant-Marketplace-41BDF5.svg
+[marketplace-url]: https://www.home-assistant.io/integrations/marketplace/
 [release-badge]: https://img.shields.io/github/v/release/teh-hippo/ha-porkbun
 [release-url]: https://github.com/teh-hippo/ha-porkbun/releases
 [validate-badge]: https://img.shields.io/github/actions/workflow/status/teh-hippo/ha-porkbun/validate.yml?branch=master&label=validate
 [validate-url]: https://github.com/teh-hippo/ha-porkbun/actions/workflows/validate.yml
-[ha-badge]: https://img.shields.io/badge/HA-2026.2%2B-blue.svg
+[ha-badge]: https://img.shields.io/badge/HA-2026.11%2B-blue.svg
 [ha-url]: https://www.home-assistant.io
