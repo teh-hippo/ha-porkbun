@@ -1,6 +1,32 @@
 # CHANGELOG
 
 
+## v2.0.0 (2026-11-26)
+
+### Chores
+
+- **deps**: Refresh Home Assistant development dependencies
+  ([`6c57e51`](https://github.com/teh-hippo/ha-porkbun/commit/6c57e51474cafa9f25863fe0e5008a9e0887646d))
+
+- **deps**: Update astral-sh/setup-uv action to v10.4.0
+  ([`1ecb825`](https://github.com/teh-hippo/ha-porkbun/commit/1ecb825ee71e59e54bbec290ba9da3e0d03c37b9))
+
+- **deps**: Update mcr.microsoft.com/devcontainers/python:3.14 docker digest to 80dc800
+  ([`42ea0a1`](https://github.com/teh-hippo/ha-porkbun/commit/42ea0a11c3e9b9e3c418c537e7f67acc9f6d20a3))
+
+- **deps**: Update python docker tag to v3.15
+  ([`60b1704`](https://github.com/teh-hippo/ha-porkbun/commit/60b17042f8d351a27987a577371c18e953083848))
+
+### Features
+
+- Require Home Assistant 2026.11
+  ([`cae96eb`](https://github.com/teh-hippo/ha-porkbun/commit/cae96eb86940d002f91dbb07d7f7c5a92ba59c97))
+
+### Breaking Changes
+
+- Home Assistant 2026.10 and earlier are no longer supported.
+
+
 ## v1.10.3 (2026-11-14)
 
 ### Bug Fixes
